@@ -41,7 +41,7 @@ public class User {
         CUSTOMER
     }
 
-
+    // Custom constructor for convenience
     public User(Long id, String name, String email, String password, String avatar, Role role) {
         this.id = id;
         this.name = name;

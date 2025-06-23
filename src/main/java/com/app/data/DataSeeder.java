@@ -1,20 +1,27 @@
 package com.app.data;
 
 import com.app.entities.Address;
+import com.app.entities.Order;
 import com.app.entities.User;
+import com.app.repositories.OrderRepository;
 import com.app.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepo;
+    private final OrderRepository orderRepo;
 
     @Autowired
-    public DataSeeder(UserRepository userRepo) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo) {
         this.userRepo = userRepo;
+        this.orderRepo = orderRepo;
     }
 
     @Override
@@ -54,6 +61,39 @@ public class DataSeeder implements CommandLineRunner {
             userRepo.save(eve);
 
             System.out.println("Users with their addresses created successfully!");
+        }
+        if (orderRepo.count() == 0) {
+            orderRepo.save(Order.builder()
+                    .orderDate(LocalDateTime.of(2025, 6, 20, 10, 30))
+                    .status(Order.Status.CREATED)
+                    .totalAmount(new BigDecimal("150.75"))
+                    .build());
+
+            orderRepo.save(Order.builder()
+                    .orderDate(LocalDateTime.of(2025, 6, 19, 15, 45))
+                    .status(Order.Status.PAID)
+                    .totalAmount(new BigDecimal("320.00"))
+                    .build());
+
+            orderRepo.save(Order.builder()
+                    .orderDate(LocalDateTime.of(2025, 6, 18, 9, 0))
+                    .status(Order.Status.SHIPPED)
+                    .totalAmount(new BigDecimal("89.99"))
+                    .build());
+
+            orderRepo.save(Order.builder()
+                    .orderDate(LocalDateTime.of(2025, 6, 17, 14, 20))
+                    .status(Order.Status.DELIVERED)
+                    .totalAmount(new BigDecimal("450.50"))
+                    .build());
+
+            orderRepo.save(Order.builder()
+                    .orderDate(LocalDateTime.of(2025, 6, 16, 11, 10))
+                    .status(Order.Status.CANCELED)
+                    .totalAmount(new BigDecimal("75.00"))
+                    .build());
+
+            System.out.println("Placeholder orders created in the database.");
         }
     }
 }
