@@ -1,12 +1,11 @@
 package com.app.data;
 
 import com.app.entities.*;
-import com.app.repositories.DiscountCodeRepository;
-import com.app.repositories.OrderRepository;
-import com.app.repositories.UserRepository;
+import com.app.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,15 +18,19 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepo;
     private final OrderRepository orderRepo;
     private final DiscountCodeRepository discountCodeRepo;
+    private final CartItemRepository cartItemRepo;
 
     @Autowired
-    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo,
+                      DiscountCodeRepository discountCodeRepo, CartItemRepository cartItemRepo) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
+        this.cartItemRepo = cartItemRepo;
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         // Seed Users, Addresses and Carts
         if (userRepo.count() == 0) {
@@ -43,6 +46,11 @@ public class DataSeeder implements CommandLineRunner {
         if (orderRepo.count() == 0) {
             seedOrdersAndPayments();
         }
+
+        // Seed Cart Items (after carts exist)
+        if (cartItemRepo.count() == 0) {
+            seedCartItems();
+        }
     }
 
     private void seedUsersWithCarts() {
@@ -51,7 +59,6 @@ public class DataSeeder implements CommandLineRunner {
         alice.addAddress(new Address("123 Main Street", "New York", "NY", "10001", "USA"));
         alice.addAddress(new Address("456 Oak Avenue", "Los Angeles", "CA", "90210", "USA"));
 
-        // Create cart for Alice
         Cart aliceCart = Cart.builder()
                 .createdAt(LocalDateTime.now().minusDays(5))
                 .build();
@@ -195,5 +202,65 @@ public class DataSeeder implements CommandLineRunner {
 
         orderRepo.saveAll(List.of(order1, order2, order3, order4, order5));
         System.out.println("Placeholder orders, payments, and discount links created.");
+    }
+
+    // Seed Cart Items
+    private void seedCartItems() {
+        // Fetch all existing carts
+        List<User> users = userRepo.findAll();
+
+        for (User user : users) {
+            if (user.getCart() != null) {
+                Cart cart = user.getCart();
+
+                // Create different numbers of cart items based on user role
+                switch (user.getRole()) {
+                    case ADMIN:
+                        // Admin has 1 item (minimal cart)
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(1)
+                                .build());
+                        break;
+
+                    case SELLER:
+                        // Sellers have 2 items (moderate cart)
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(3)
+                                .build());
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(1)
+                                .build());
+                        break;
+
+                    case CUSTOMER:
+                        // Customers have 3-4 items (full cart)
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(2)
+                                .build());
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(5)
+                                .build());
+                        cart.addCartItem(CartItem.builder()
+                                .quantity(1)
+                                .build());
+
+                        // Some customers have an extra item
+                        if (user.getName().contains("Carol")) {
+                            cart.addCartItem(CartItem.builder()
+                                    .quantity(3)
+                                    .build());
+                        }
+                        break;
+                }
+
+                // Save the cart (cart items are saved by cascade)
+                userRepo.save(user);
+            }
+        }
+
+        System.out.println("Cart items created for all existing carts:");
+        System.out.println("- Admin users: 1 item per cart");
+        System.out.println("- Seller users: 2 items per cart");
+        System.out.println("- Customer users: 3-4 items per cart");
     }
 }

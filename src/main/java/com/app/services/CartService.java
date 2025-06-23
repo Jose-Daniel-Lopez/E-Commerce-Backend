@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CartService {
-    
+
     // Repository for Cart entity
     private final CartRepository cartRepo;
 
