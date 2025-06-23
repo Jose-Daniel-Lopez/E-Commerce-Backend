@@ -2,7 +2,9 @@ package com.app.repositories;
 
 import com.app.entities.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
     // Additional methods related to Address can be defined here if needed
