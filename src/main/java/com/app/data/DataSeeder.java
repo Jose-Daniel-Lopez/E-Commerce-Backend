@@ -18,48 +18,88 @@ public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepo;
     private final OrderRepository orderRepo;
-    private final DiscountCodeRepository discountCodeRepo; // New repository
+    private final DiscountCodeRepository discountCodeRepo;
 
     @Autowired
     public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
-        this.discountCodeRepo = discountCodeRepo; // Inject in constructor
+        this.discountCodeRepo = discountCodeRepo;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // --- Seed Users and Addresses (if database is empty) ---
+        // Seed Users, Addresses and Carts
         if (userRepo.count() == 0) {
-            seedUsers();
+            seedUsersWithCarts();
         }
 
-        // --- Seed Discount Codes (if database is empty) ---
+        // Seed Discount Codes
         if (discountCodeRepo.count() == 0) {
             seedDiscountCodes();
         }
 
-        // --- Seed Orders, Payments and link Discount Codes (if database is empty) ---
+        // Seed Orders and Payments
         if (orderRepo.count() == 0) {
             seedOrdersAndPayments();
         }
     }
 
-    private void seedUsers() {
-        // Alice Admin - 2 addresses
+    private void seedUsersWithCarts() {
+        // Alice Admin - 2 addresses + cart
         User alice = new User(null, "Alice Admin", "alice@admin.com", "admin123", "alice.png", User.Role.ADMIN);
         alice.addAddress(new Address("123 Main Street", "New York", "NY", "10001", "USA"));
         alice.addAddress(new Address("456 Oak Avenue", "Los Angeles", "CA", "90210", "USA"));
 
-        // Bob Seller - 2 addresses
+        // Create cart for Alice
+        Cart aliceCart = Cart.builder()
+                .createdAt(LocalDateTime.now().minusDays(5))
+                .build();
+        alice.setCart(aliceCart);
+
+        // Bob Seller - 2 addresses + cart
         User bob = new User(null, "Bob Seller", "bob@seller.com", "seller123", "bob.png", User.Role.SELLER);
         bob.addAddress(new Address("789 Pine Road", "Chicago", "IL", "60601", "USA"));
         bob.addAddress(new Address("321 Elm Street", "Houston", "TX", "77001", "USA"));
 
-        // ... (other users) ...
+        Cart bobCart = Cart.builder()
+                .createdAt(LocalDateTime.now().minusDays(3))
+                .build();
+        bob.setCart(bobCart);
 
-        userRepo.saveAll(List.of(alice, bob /*, ... other users */));
-        System.out.println("Placeholder users and addresses created successfully!");
+        // Carol Customer - 3 addresses + cart
+        User carol = new User(null, "Carol Customer", "carol@customer.com", "customer123", "carol.png", User.Role.CUSTOMER);
+        carol.addAddress(new Address("654 Maple Drive", "Phoenix", "AZ", "85001", "USA"));
+        carol.addAddress(new Address("987 Cedar Lane", "Philadelphia", "PA", "19101", "USA"));
+        carol.addAddress(new Address("147 Birch Boulevard", "San Antonio", "TX", "78201", "USA"));
+
+        Cart carolCart = Cart.builder()
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .build();
+        carol.setCart(carolCart);
+
+        // Dave Seller - 1 address + cart
+        User dave = new User(null, "Dave Seller", "dave@seller.com", "davepass", "dave.png", User.Role.SELLER);
+        dave.addAddress(new Address("258 Willow Way", "San Diego", "CA", "92101", "USA"));
+
+        Cart daveCart = Cart.builder()
+                .createdAt(LocalDateTime.now().minusDays(2))
+                .build();
+        dave.setCart(daveCart);
+
+        // Eve Customer - 2 addresses + cart
+        User eve = new User(null, "Eve Customer", "eve@customer.com", "evepass", "eve.png", User.Role.CUSTOMER);
+        eve.addAddress(new Address("369 Spruce Circle", "Dallas", "TX", "75201", "USA"));
+        eve.addAddress(new Address("741 Ash Court", "San Jose", "CA", "95101", "USA"));
+
+        Cart eveCart = Cart.builder()
+                .createdAt(LocalDateTime.now())
+                .build();
+        eve.setCart(eveCart);
+
+        // Save users (addresses and carts are saved automatically by cascade)
+        userRepo.saveAll(List.of(alice, bob, carol, dave, eve));
+        System.out.println("Placeholder users with addresses and carts created successfully!");
     }
 
     private void seedDiscountCodes() {
@@ -81,7 +121,7 @@ public class DataSeeder implements CommandLineRunner {
                 .code("WINTER_EXPIRED")
                 .discountAmount(new BigDecimal("50.00"))
                 .expiryDate(LocalDate.now().minusDays(1))
-                .isActive(true) // Still active, but date is past
+                .isActive(true)
                 .build();
 
         DiscountCode inactive = DiscountCode.builder()
@@ -96,52 +136,62 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedOrdersAndPayments() {
-        // Fetch the discount codes to be used
+        // Fetch discount codes
         DiscountCode summerDiscount = discountCodeRepo.findByCode("SUMMER25").orElse(null);
         DiscountCode save10Discount = discountCodeRepo.findByCode("SAVE10").orElse(null);
 
-        // Order 1: CREATED -> PENDING Payment, with a discount
+        // Create orders with payments
         Order order1 = Order.builder()
                 .orderDate(LocalDateTime.now().minusDays(3))
                 .status(Order.Status.CREATED)
                 .totalAmount(new BigDecimal("150.75"))
-                .discountCode(summerDiscount) // Assign discount code
+                .discountCode(summerDiscount)
                 .build();
-        order1.setPayment(new Payment("Credit Card", Payment.Status.PENDING));
+        order1.setPayment(Payment.builder()
+                .paymentMethod("Credit Card")
+                .status(Payment.Status.PENDING)
+                .build());
 
-        // Order 2: PAID -> COMPLETED Payment, with a discount
         Order order2 = Order.builder()
                 .orderDate(LocalDateTime.now().minusDays(2))
                 .status(Order.Status.PAID)
                 .totalAmount(new BigDecimal("320.00"))
-                .discountCode(save10Discount) // Assign discount code
+                .discountCode(save10Discount)
                 .build();
-        order2.setPayment(new Payment("PayPal", Payment.Status.COMPLETED));
+        order2.setPayment(Payment.builder()
+                .paymentMethod("PayPal")
+                .status(Payment.Status.COMPLETED)
+                .build());
 
-        // Order 3: SHIPPED -> COMPLETED Payment, no discount
         Order order3 = Order.builder()
                 .orderDate(LocalDateTime.now().minusDays(1))
                 .status(Order.Status.SHIPPED)
                 .totalAmount(new BigDecimal("89.99"))
-                .discountCode(null) // Explicitly no discount
                 .build();
-        order3.setPayment(new Payment("Credit Card", Payment.Status.COMPLETED));
+        order3.setPayment(Payment.builder()
+                .paymentMethod("Credit Card")
+                .status(Payment.Status.COMPLETED)
+                .build());
 
-        // Order 4: DELIVERED -> COMPLETED Payment, no discount
         Order order4 = Order.builder()
                 .orderDate(LocalDateTime.now().minusDays(5))
                 .status(Order.Status.DELIVERED)
                 .totalAmount(new BigDecimal("450.50"))
                 .build();
-        order4.setPayment(new Payment("Bank Transfer", Payment.Status.COMPLETED));
+        order4.setPayment(Payment.builder()
+                .paymentMethod("Bank Transfer")
+                .status(Payment.Status.COMPLETED)
+                .build());
 
-        // Order 5: CANCELED -> FAILED Payment, no discount
         Order order5 = Order.builder()
                 .orderDate(LocalDateTime.now().minusDays(10))
                 .status(Order.Status.CANCELED)
                 .totalAmount(new BigDecimal("75.00"))
                 .build();
-        order5.setPayment(new Payment("Credit Card", Payment.Status.FAILED));
+        order5.setPayment(Payment.builder()
+                .paymentMethod("Credit Card")
+                .status(Payment.Status.FAILED)
+                .build());
 
         orderRepo.saveAll(List.of(order1, order2, order3, order4, order5));
         System.out.println("Placeholder orders, payments, and discount links created.");
