@@ -1,12 +1,13 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,18 +28,20 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude // Avoid infinite recursion in toString()
-    @EqualsAndHashCode.Exclude // Avoid performance issues in equals/hashCode
-    @Builder.Default // Ensure addresses is initialized
+    @JsonManagedReference // To manage the serialization of addresses without causing infinite recursion
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
     private List<Address> addresses = new ArrayList<>();
 
+    // Enumeration for user roles
     public enum Role {
         ADMIN,
         SELLER,
         CUSTOMER
     }
 
-    // Convenience constructor for DataSeeder
+
     public User(Long id, String name, String email, String password, String avatar, Role role) {
         this.id = id;
         this.name = name;
@@ -49,7 +52,7 @@ public class User {
         this.addresses = new ArrayList<>();
     }
 
-    // Methods to manage addresses
+    // Convenience methods to manage addresses
     public void addAddress(Address address) {
         if (addresses == null) {
             addresses = new ArrayList<>();
@@ -63,5 +66,17 @@ public class User {
             addresses.remove(address);
             address.setUser(null);
         }
+    }
+
+    // custom toString method to avoid infinite recursion
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", role=" + role +
+                ", addressCount=" + (addresses != null ? addresses.size() : 0) +
+                '}';
     }
 }

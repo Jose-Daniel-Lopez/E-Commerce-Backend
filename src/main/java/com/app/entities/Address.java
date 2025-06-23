@@ -1,9 +1,11 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,16 +25,30 @@ public class Address {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude // Avoid infinite recursion in toString()
-    @EqualsAndHashCode.Exclude // Avoid performance issues in equals/hashCode
+    @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
-    // Convenience constructor for DataSeeder
     public Address(String street, String city, String state, String zipCode, String country) {
         this.street = street;
         this.city = city;
         this.state = state;
         this.zipCode = zipCode;
         this.country = country;
+    }
+
+    // custom toString method to avoid infinite recursion
+    @Override
+    public String toString() {
+        return "Address{" +
+                "id=" + id +
+                ", street='" + street + '\'' +
+                ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", country='" + country + '\'' +
+                ", userId=" + (user != null ? user.getId() : null) +
+                '}';
     }
 }
