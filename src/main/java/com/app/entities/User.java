@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @Entity
 @Table(name = "users")
-public class Users {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,10 +28,10 @@ public class Users {
         CUSTOMER
     }
 
-    public Users() {
+    public User() {
     }
 
-    public Users(Long id, String name, String email, String password, String avatar, Role role) {
+    public User(Long id, String name, String email, String password, String avatar, Role role) {
         this.id = id;
         this.name = name;
         this.email = email;

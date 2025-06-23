@@ -1,6 +1,6 @@
 package com.app.controllers;
 
-import com.app.entities.Users;
+import com.app.entities.User;
 import com.app.services.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UsersController {
 
-    /* --- This controller will handle HTTP requests related to Users --- */
+    /* --- This controller will handle HTTP requests related to User --- */
     /* --- You can add methods to handle various endpoints, e.g., GET, POST, PUT, DELETE --- */
 
     // Injecting the UsersService to handle business logic
@@ -29,7 +29,7 @@ public class UsersController {
 
     // Method to get all users
      @GetMapping
-     public List<Users> getAllUsers() {
+     public List<User> getAllUsers() {
          return userService.getAllUsers();
      }
 }
