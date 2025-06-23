@@ -1,7 +1,13 @@
 package com.app.entities;
 
 import jakarta.persistence.*;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Entity
 @Table(name = "addresses")
 public class Address {
