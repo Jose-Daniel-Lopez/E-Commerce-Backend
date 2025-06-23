@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,11 +29,22 @@ public class Order {
 
     private BigDecimal totalAmount;
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Payment payment;
+
     public enum Status {
         CREATED,
         PAID,
         SHIPPED,
         DELIVERED,
         CANCELED
+    }
+
+    // Convenience method to sync both sides of the relationship
+    public void setPayment(Payment payment) {
+        if (payment != null) {
+            payment.setOrder(this);
+        }
+        this.payment = payment;
     }
 }

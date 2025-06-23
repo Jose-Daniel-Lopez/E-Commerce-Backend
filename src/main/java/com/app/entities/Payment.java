@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,10 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     public enum Status {
         PENDING,
