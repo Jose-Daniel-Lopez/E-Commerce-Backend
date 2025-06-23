@@ -42,6 +42,14 @@ public class User {
     @EqualsAndHashCode.Exclude
     private Cart cart;
 
+    // One-to-Many relationship with ProductReview (bidirectional)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductReview> productReviews = new ArrayList<>();
+
+
     public enum Role {
         ADMIN,
         SELLER,
