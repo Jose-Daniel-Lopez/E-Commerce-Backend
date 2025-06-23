@@ -23,6 +23,7 @@ public class Address {
     private String zipCode;
     private String country;
 
+    // Many-to-One relationship with User (bidirectional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
