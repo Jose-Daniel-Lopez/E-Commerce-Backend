@@ -24,10 +24,11 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductReviewRepository productReviewRepo;
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
+    private final OrderItemRepository orderItemRepo;
 
     // Constructor injection for repositories
     @Autowired
-    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
@@ -35,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
         this.productReviewRepo = productReviewRepo;
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
+        this.orderItemRepo = orderItemRepo;
     }
 
     // This method is called when the application starts
@@ -44,10 +46,10 @@ public class DataSeeder implements CommandLineRunner {
         if (userRepo.count() == 0) {
             seedUsersWithCartsAndAddresses();
         }
-        if (categoryRepo.count() == 0) {  // Categories first!
+        if (categoryRepo.count() == 0) {
             seedCategories();
         }
-        if (productRepo.count() == 0) {   // Then products
+        if (productRepo.count() == 0) {
             seedProducts();
         }
         if (discountCodeRepo.count() == 0) {
@@ -55,6 +57,9 @@ public class DataSeeder implements CommandLineRunner {
         }
         if (orderRepo.count() == 0) {
             seedOrdersAndPayments();
+        }
+        if (orderItemRepo.count() == 0) {  // Add this check
+            seedOrderItems();               // Add this call
         }
         if (cartItemRepo.count() == 0) {
             seedCartItems();
@@ -194,6 +199,53 @@ public class DataSeeder implements CommandLineRunner {
 
         orderRepo.saveAll(List.of(order1, order2, order3, order4, order5));
         System.out.println("Orders and payments created.");
+    }
+
+    // Seed sample order items
+    private void seedOrderItems() {
+        // Check if order items already exist to avoid duplicate seeding
+        if (orderItemRepo.count() > 0) {
+            return;
+        }
+
+        List<Order> orders = orderRepo.findAll();
+        List<Product> products = productRepo.findAll();
+
+        if (orders.isEmpty() || products.isEmpty()) {
+            System.out.println("No orders or products found. Skipping order items seeding.");
+            return;
+        }
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (Order order : orders) {
+            // Create 2-4 random items per order
+            int itemCount = (int) (Math.random() * 3) + 2;
+
+            for (int i = 0; i < itemCount; i++) {
+                // Select a random product
+                Product randomProduct = products.get((int) (Math.random() * products.size()));
+
+                // Random quantity between 1 and 5
+                int quantity = (int) (Math.random() * 5) + 1;
+
+                // Use product's base price with small random variation
+                BigDecimal unitPrice = randomProduct.getBasePrice()
+                        .multiply(BigDecimal.valueOf(0.9 + (Math.random() * 0.2))); // ±10% variation
+
+                OrderItem orderItem = OrderItem.builder()
+                        .quantity(quantity)
+                        .unitPrice(unitPrice)
+                        .order(order)
+                        .build();
+
+                orderItems.add(orderItem);
+            }
+        }
+
+        // Save all order items to the database
+        orderItemRepo.saveAll(orderItems);
+        System.out.println("Sample order items created: " + orderItems.size() + " items across " + orders.size() + " orders.");
     }
 
     // Seed cart items for each user based on their role

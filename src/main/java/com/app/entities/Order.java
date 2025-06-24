@@ -9,6 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -43,6 +45,13 @@ public class Order {
     @JoinColumn(name = "discount_code_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private DiscountCode discountCode;
+
+    // One-to-Many relationship with OrderItem (bidirectional)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<OrderItem> orderItems = new ArrayList<>();
+
 
     public enum Status {
         CREATED,
