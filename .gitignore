@@ -34,3 +34,4 @@ build/
 
 ### Project files ###
 .env
+src/main/resources/.env
