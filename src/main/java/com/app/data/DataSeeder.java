@@ -16,32 +16,41 @@ import java.util.List;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    // Repositories for accessing the database
     private final UserRepository userRepo;
     private final OrderRepository orderRepo;
     private final DiscountCodeRepository discountCodeRepo;
     private final CartItemRepository cartItemRepo;
     private final ProductReviewRepository productReviewRepo;
+    private final ProductRepository productRepo;
 
+    // Constructor injection for repositories
     @Autowired
     public DataSeeder(
             UserRepository userRepo,
             OrderRepository orderRepo,
             DiscountCodeRepository discountCodeRepo,
             CartItemRepository cartItemRepo,
-            ProductReviewRepository productReviewRepo
+            ProductReviewRepository productReviewRepo,
+            ProductRepository productRepo
     ) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
         this.cartItemRepo = cartItemRepo;
         this.productReviewRepo = productReviewRepo;
+        this.productRepo = productRepo;
     }
 
+    // This method is called when the application starts
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         if (userRepo.count() == 0) {
             seedUsersWithCartsAndAddresses();
+        }
+        if (productRepo.count() == 0) {
+            seedProducts();
         }
         if (discountCodeRepo.count() == 0) {
             seedDiscountCodes();
@@ -57,6 +66,7 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+    // Seed users with addresses and carts
     private void seedUsersWithCartsAndAddresses() {
         // Create users with addresses and carts
         User alice = new User(null, "Alice Admin", "alice@admin.com", "admin123", "alice.png", User.Role.ADMIN);
@@ -93,6 +103,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Users with addresses and carts created.");
     }
 
+    // Seed discount codes
     private void seedDiscountCodes() {
         DiscountCode summer25 = DiscountCode.builder()
                 .code("SUMMER25")
@@ -126,6 +137,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Discount codes created.");
     }
 
+    // Seed orders and payments
     private void seedOrdersAndPayments() {
         DiscountCode summerDiscount = discountCodeRepo.findByCode("SUMMER25").orElse(null);
         DiscountCode save10Discount = discountCodeRepo.findByCode("SAVE10").orElse(null);
@@ -186,6 +198,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Orders and payments created.");
     }
 
+    // Seed cart items for each user based on their role
     private void seedCartItems() {
         List<User> users = userRepo.findAll();
         for (User user : users) {
@@ -214,9 +227,12 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Cart items created.");
     }
 
+    // Seed product reviews for each user
     private void seedProductReviews() {
         List<User> users = userRepo.findAll();
+        List<Product> products = productRepo.findAll(); // Get all products
         List<ProductReview> reviews = new ArrayList<>();
+
         for (User user : users) {
             int reviewCount = switch (user.getName()) {
                 case "Alice Admin" -> 2;
@@ -224,17 +240,55 @@ public class DataSeeder implements CommandLineRunner {
                 case "Carol Customer" -> 3;
                 default -> 1;
             };
+
             for (int i = 1; i <= reviewCount; i++) {
+                // Assign a random product to each review
+                Product randomProduct = products.get((int) (Math.random() * products.size()));
+
                 ProductReview review = ProductReview.builder()
                         .rating((int) (Math.random() * 5) + 1)
                         .comment("Review #" + i + " by " + user.getName())
                         .createdAt(LocalDateTime.now().minusDays(i))
                         .user(user)
+                        .product(randomProduct)  // Set the product reference
                         .build();
                 reviews.add(review);
             }
         }
         productReviewRepo.saveAll(reviews);
         System.out.println("Product reviews created.");
+    }
+
+    // Seed sample products
+    private void seedProducts() {
+        // Check if products already exist to avoid duplicate seeding
+        if (productRepo.count() > 0) {
+            return;
+        }
+
+        Product product1 = Product.builder()
+                .name("Smartphone X")
+                .description("Latest generation smartphone with OLED display.")
+                .basePrice(new BigDecimal("699.99"))
+                .totalStock(100)
+                .build();
+
+        Product product2 = Product.builder()
+                .name("Pro Headphones")
+                .description("Wireless headphones with noise cancellation.")
+                .basePrice(new BigDecimal("199.99"))
+                .totalStock(250)
+                .build();
+
+        Product product3 = Product.builder()
+                .name("Ultra Laptop")
+                .description("Ultralight laptop with high-performance processor.")
+                .basePrice(new BigDecimal("1299.99"))
+                .totalStock(50)
+                .build();
+
+        // Save all products to the database
+        productRepo.saveAll(List.of(product1, product2, product3));
+        System.out.println("Sample products created.");
     }
 }

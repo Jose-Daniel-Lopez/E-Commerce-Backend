@@ -34,6 +34,14 @@ public class ProductReview {
     @EqualsAndHashCode.Exclude
     private User user;
 
+    // Many-to-One relationship with User (bidirectional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Product product;
+
     // Constructor for creating a ProductReview with required fields
     public ProductReview(Integer rating, String comment, LocalDateTime createdAt) {
         this.rating = rating;
