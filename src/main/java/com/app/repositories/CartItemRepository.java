@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
+
     // Additional custom query methods can be defined here if needed
 
     // Example: Find CartItem by Cart ID
@@ -14,4 +15,5 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     // Example: Delete CartItem by Cart ID
     // void deleteByCartId(Long cartId);
+    long countByCartId(Long id);
 }

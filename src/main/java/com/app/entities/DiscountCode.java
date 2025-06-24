@@ -1,6 +1,7 @@
 package com.app.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,6 +18,7 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "discount_codes")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DiscountCode {
 
     @Id

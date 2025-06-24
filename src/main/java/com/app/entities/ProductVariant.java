@@ -2,12 +2,8 @@ package com.app.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -15,20 +11,25 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "categories")
+@Table(name = "product_variants")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Category {
+public class ProductVariant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String size;
+    private String color;
+    private Integer stock;
+    private String sku; // Stock Keeping Unit
 
-    // One-to-Many relationship with Product (bidirectional)
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Many-to-One relationship with Product (bidirectional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<Product> products = new ArrayList<>();
+    private Product product;
+
 }

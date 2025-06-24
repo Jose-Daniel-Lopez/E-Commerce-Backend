@@ -20,23 +20,27 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepo;
     private final OrderRepository orderRepo;
     private final DiscountCodeRepository discountCodeRepo;
+    private final CartRepository cartRepo;
     private final CartItemRepository cartItemRepo;
     private final ProductReviewRepository productReviewRepo;
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final OrderItemRepository orderItemRepo;
+    private final ProductVariantRepository productVariantRepo;
 
     // Constructor injection for repositories
     @Autowired
-    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartRepository cartRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo, ProductVariantRepository productVariantRepo) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
+        this.cartRepo = cartRepo;
         this.cartItemRepo = cartItemRepo;
         this.productReviewRepo = productReviewRepo;
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.orderItemRepo = orderItemRepo;
+        this.productVariantRepo = productVariantRepo;
     }
 
     // This method is called when the application starts
@@ -52,14 +56,17 @@ public class DataSeeder implements CommandLineRunner {
         if (productRepo.count() == 0) {
             seedProducts();
         }
+        if (productVariantRepo.count() == 0) {  // After products
+            seedProductVariants();
+        }
         if (discountCodeRepo.count() == 0) {
             seedDiscountCodes();
         }
         if (orderRepo.count() == 0) {
             seedOrdersAndPayments();
         }
-        if (orderItemRepo.count() == 0) {  // Add this check
-            seedOrderItems();               // Add this call
+        if (orderItemRepo.count() == 0) {
+            seedOrderItems();
         }
         if (cartItemRepo.count() == 0) {
             seedCartItems();
@@ -68,6 +75,7 @@ public class DataSeeder implements CommandLineRunner {
             seedProductReviews();
         }
     }
+
 
     // Seed users with addresses and carts
     private void seedUsersWithCartsAndAddresses() {
@@ -142,140 +150,132 @@ public class DataSeeder implements CommandLineRunner {
 
     // Seed orders and payments
     private void seedOrdersAndPayments() {
-        DiscountCode summerDiscount = discountCodeRepo.findByCode("SUMMER25").orElse(null);
-        DiscountCode save10Discount = discountCodeRepo.findByCode("SAVE10").orElse(null);
+        if (orderRepo.count() > 0) {
+            return;
+        }
 
-        Order order1 = Order.builder()
-                .orderDate(LocalDateTime.now().minusDays(3))
-                .status(Order.Status.CREATED)
-                .totalAmount(new BigDecimal("150.75"))
-                .discountCode(summerDiscount)
-                .build();
-        order1.setPayment(Payment.builder()
-                .paymentMethod("Credit Card")
-                .status(Payment.Status.PENDING)
-                .build());
+        List<User> users = userRepo.findAll();
 
-        Order order2 = Order.builder()
-                .orderDate(LocalDateTime.now().minusDays(2))
-                .status(Order.Status.PAID)
-                .totalAmount(new BigDecimal("320.00"))
-                .discountCode(save10Discount)
-                .build();
-        order2.setPayment(Payment.builder()
-                .paymentMethod("PayPal")
-                .status(Payment.Status.COMPLETED)
-                .build());
+        if (users.isEmpty()) {
+            System.out.println("No users found. Skipping orders seeding.");
+            return;
+        }
 
-        Order order3 = Order.builder()
-                .orderDate(LocalDateTime.now().minusDays(1))
-                .status(Order.Status.SHIPPED)
-                .totalAmount(new BigDecimal("89.99"))
-                .build();
-        order3.setPayment(Payment.builder()
-                .paymentMethod("Credit Card")
-                .status(Payment.Status.COMPLETED)
-                .build());
+        List<Order> orders = new ArrayList<>();
 
-        Order order4 = Order.builder()
-                .orderDate(LocalDateTime.now().minusDays(5))
-                .status(Order.Status.DELIVERED)
-                .totalAmount(new BigDecimal("450.50"))
-                .build();
-        order4.setPayment(Payment.builder()
-                .paymentMethod("Bank Transfer")
-                .status(Payment.Status.COMPLETED)
-                .build());
+        // Create multiple orders for different users
+        for (User user : users) {
+            // Each user gets 1-3 orders
+            int orderCount = (int) (Math.random() * 3) + 1;
 
-        Order order5 = Order.builder()
-                .orderDate(LocalDateTime.now().minusDays(10))
-                .status(Order.Status.CANCELED)
-                .totalAmount(new BigDecimal("75.00"))
-                .build();
-        order5.setPayment(Payment.builder()
-                .paymentMethod("Credit Card")
-                .status(Payment.Status.FAILED)
-                .build());
+            for (int i = 0; i < orderCount; i++) {
+                Order order = Order.builder()
+                        .orderDate(LocalDateTime.now().minusDays((int) (Math.random() * 30)))
+                        .status(Order.Status.values()[(int) (Math.random() * Order.Status.values().length)])
+                        .totalAmount(new BigDecimal("0.00")) // Will be calculated later
+                        .user(user) // Assign the user to the order
+                        .build();
 
-        orderRepo.saveAll(List.of(order1, order2, order3, order4, order5));
-        System.out.println("Orders and payments created.");
+                orders.add(order);
+            }
+        }
+
+        orderRepo.saveAll(orders);
+        System.out.println("Sample orders created: " + orders.size() + " orders for " + users.size() + " users.");
     }
+
 
     // Seed sample order items
     private void seedOrderItems() {
-        // Check if order items already exist to avoid duplicate seeding
         if (orderItemRepo.count() > 0) {
             return;
         }
 
         List<Order> orders = orderRepo.findAll();
-        List<Product> products = productRepo.findAll();
+        List<ProductVariant> variants = productVariantRepo.findAll();
 
-        if (orders.isEmpty() || products.isEmpty()) {
-            System.out.println("No orders or products found. Skipping order items seeding.");
+        if (orders.isEmpty() || variants.isEmpty()) {
+            System.out.println("No orders or product variants found. Skipping order items seeding.");
             return;
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (Order order : orders) {
-            // Create 2-4 random items per order
             int itemCount = (int) (Math.random() * 3) + 2;
 
             for (int i = 0; i < itemCount; i++) {
-                // Select a random product
-                Product randomProduct = products.get((int) (Math.random() * products.size()));
-
-                // Random quantity between 1 and 5
+                ProductVariant randomVariant = variants.get((int) (Math.random() * variants.size()));
                 int quantity = (int) (Math.random() * 5) + 1;
-
-                // Use product's base price with small random variation
-                BigDecimal unitPrice = randomProduct.getBasePrice()
-                        .multiply(BigDecimal.valueOf(0.9 + (Math.random() * 0.2))); // ±10% variation
+                BigDecimal unitPrice = randomVariant.getProduct().getBasePrice();
 
                 OrderItem orderItem = OrderItem.builder()
                         .quantity(quantity)
                         .unitPrice(unitPrice)
                         .order(order)
+                        .productVariant(randomVariant)
                         .build();
 
                 orderItems.add(orderItem);
             }
         }
 
-        // Save all order items to the database
         orderItemRepo.saveAll(orderItems);
-        System.out.println("Sample order items created: " + orderItems.size() + " items across " + orders.size() + " orders.");
+        System.out.println("Sample order items created: " + orderItems.size() + " items.");
     }
 
     // Seed cart items for each user based on their role
     private void seedCartItems() {
-        List<User> users = userRepo.findAll();
-        for (User user : users) {
-            Cart cart = user.getCart();
-            if (cart != null) {
-                // Example: Different number of items per user
-                if (user.getRole() == User.Role.ADMIN) {
-                    cart.addCartItem(CartItem.builder().quantity(1).build());
-                } else if (user.getRole() == User.Role.SELLER) {
-                    cart.addCartItem(CartItem.builder().quantity(2).build());
-                    cart.addCartItem(CartItem.builder().quantity(1).build());
-                } else if (user.getRole() == User.Role.CUSTOMER) {
-                    cart.addCartItem(CartItem.builder().quantity(2).build());
-                    cart.addCartItem(CartItem.builder().quantity(5).build());
-                    cart.addCartItem(CartItem.builder().quantity(1).build());
-                    if (user.getName().contains("Carol")) {
-                        cart.addCartItem(CartItem.builder().quantity(3).build());
-                    }
-                }
-                // Save cart (cart items are saved by cascade)
-                // If you have a CartRepository, use it; otherwise, userRepo.save(user) is enough
-                // cartRepo.save(cart);
-                userRepo.save(user);
+        if (cartItemRepo.count() > 0) {
+            return;
+        }
+
+        List<Cart> carts = cartRepo.findAll();
+        List<ProductVariant> variants = productVariantRepo.findAll();
+
+        if (carts.isEmpty() || variants.isEmpty()) {
+            System.out.println("No carts or product variants found. Skipping cart items seeding.");
+            return;
+        }
+
+        List<CartItem> cartItems = new ArrayList<>();
+
+        // Ensure every cart gets at least one item
+        for (Cart cart : carts) {
+            // Add 1-3 random variants to each cart
+            int itemCount = (int) (Math.random() * 3) + 1;
+
+            System.out.println("Creating " + itemCount + " items for cart ID: " + cart.getId());
+
+            for (int i = 0; i < itemCount; i++) {
+                ProductVariant randomVariant = variants.get((int) (Math.random() * variants.size()));
+                int quantity = (int) (Math.random() * 3) + 1;
+
+                CartItem cartItem = CartItem.builder()
+                        .quantity(quantity)
+                        .cart(cart)  // Make sure this is set
+                        .productVariant(randomVariant)  // Make sure this is set
+                        .build();
+
+                cartItems.add(cartItem);
+
+                System.out.println("Created CartItem: cartId=" + cart.getId() +
+                        ", variantId=" + randomVariant.getId() +
+                        ", quantity=" + quantity);
             }
         }
-        System.out.println("Cart items created.");
+
+        cartItemRepo.saveAll(cartItems);
+        System.out.println("Sample cart items created: " + cartItems.size() + " items for " + carts.size() + " carts.");
+
+        // Verify the data was saved
+        for (Cart cart : carts) {
+            long itemCount = cartItemRepo.countByCartId(cart.getId());
+            System.out.println("Cart ID " + cart.getId() + " has " + itemCount + " items");
+        }
     }
+
+
 
     // Seed product reviews for each user
     private void seedProductReviews() {
@@ -400,5 +400,69 @@ public class DataSeeder implements CommandLineRunner {
         // Save all categories to the database
         categoryRepo.saveAll(List.of(electronics, computers, audio, mobile));
         System.out.println("Sample categories created.");
+    }
+
+    // Seed sample product variants
+    private void seedProductVariants() {
+        if (productVariantRepo.count() > 0) {
+            return;
+        }
+
+        List<Product> products = productRepo.findAll();
+
+        if (products.isEmpty()) {
+            System.out.println("No products found. Skipping product variants seeding.");
+            return;
+        }
+
+        List<ProductVariant> variants = new ArrayList<>();
+
+        for (Product product : products) {
+            switch (product.getName()) {
+                case "Smartphone X" -> {
+                    variants.add(createVariant(product, "128GB", "Black", 25, "SMX-128-BLK-001"));
+                    variants.add(createVariant(product, "256GB", "White", 20, "SMX-256-WHT-002"));
+                    variants.add(createVariant(product, "512GB", "Blue", 15, "SMX-512-BLU-003"));
+                }
+                case "Pro Headphones" -> {
+                    variants.add(createVariant(product, "Standard", "Black", 50, "PHD-STD-BLK-001"));
+                    variants.add(createVariant(product, "Standard", "Silver", 30, "PHD-STD-SLV-002"));
+                }
+                case "Ultra Laptop" -> {
+                    variants.add(createVariant(product, "8GB/256GB", "Space Gray", 10, "ULT-8256-SG-001"));
+                    variants.add(createVariant(product, "16GB/512GB", "Space Gray", 8, "ULT-16512-SG-002"));
+                    variants.add(createVariant(product, "16GB/1TB", "Silver", 5, "ULT-161TB-SLV-003"));
+                }
+                case "Gaming Mouse" -> {
+                    variants.add(createVariant(product, "Standard", "Black", 40, "GMO-STD-BLK-001"));
+                    variants.add(createVariant(product, "RGB", "Multi", 35, "GMO-RGB-MLT-002"));
+                }
+                default -> {
+                    variants.add(createVariant(product, "Standard", "Default", 20,
+                            generateSKU(product.getName(), "STD", "DEF")));
+                }
+            }
+        }
+
+        productVariantRepo.saveAll(variants);
+        System.out.println("Sample product variants created: " + variants.size() + " variants.");
+    }
+
+    // Helper methods
+    private ProductVariant createVariant(Product product, String size, String color, Integer stock, String sku) {
+        return ProductVariant.builder()
+                .size(size)
+                .color(color)
+                .stock(stock)
+                .sku(sku)
+                .product(product)
+                .build();
+    }
+
+    private String generateSKU(String productName, String size, String color) {
+        String prefix = productName.substring(0, Math.min(3, productName.length())).toUpperCase();
+        String sizeCode = size.substring(0, Math.min(3, size.length())).toUpperCase();
+        String colorCode = color.substring(0, Math.min(3, color.length())).toUpperCase();
+        return String.format("%s-%s-%s-%03d", prefix, sizeCode, colorCode, (int)(Math.random() * 999) + 1);
     }
 }

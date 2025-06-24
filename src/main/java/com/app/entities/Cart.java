@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +17,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "carts")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cart {
 
     @Id
@@ -34,10 +36,9 @@ public class Cart {
 
     // One-to-Many relationship with CartItem (bidirectional)
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @JsonManagedReference
-    @Builder.Default
     private List<CartItem> cartItems = new ArrayList<>();
 
 

@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "shipping_addresses")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ShippingAddress {
 
     @Id
