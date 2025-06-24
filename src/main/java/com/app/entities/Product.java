@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,9 +29,16 @@ public class Product {
 
     // One-to-Many relationship with ProductReview (bidirectional)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductReview> productReviews = new ArrayList<>();
 
+    // Many-to-One relationship with Category (bidirectional)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Category category;
 }

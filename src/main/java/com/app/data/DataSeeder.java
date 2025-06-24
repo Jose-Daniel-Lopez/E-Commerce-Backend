@@ -23,23 +23,18 @@ public class DataSeeder implements CommandLineRunner {
     private final CartItemRepository cartItemRepo;
     private final ProductReviewRepository productReviewRepo;
     private final ProductRepository productRepo;
+    private final CategoryRepository categoryRepo;
 
     // Constructor injection for repositories
     @Autowired
-    public DataSeeder(
-            UserRepository userRepo,
-            OrderRepository orderRepo,
-            DiscountCodeRepository discountCodeRepo,
-            CartItemRepository cartItemRepo,
-            ProductReviewRepository productReviewRepo,
-            ProductRepository productRepo
-    ) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
         this.cartItemRepo = cartItemRepo;
         this.productReviewRepo = productReviewRepo;
         this.productRepo = productRepo;
+        this.categoryRepo = categoryRepo;
     }
 
     // This method is called when the application starts
@@ -49,7 +44,10 @@ public class DataSeeder implements CommandLineRunner {
         if (userRepo.count() == 0) {
             seedUsersWithCartsAndAddresses();
         }
-        if (productRepo.count() == 0) {
+        if (categoryRepo.count() == 0) {  // Categories first!
+            seedCategories();
+        }
+        if (productRepo.count() == 0) {   // Then products
             seedProducts();
         }
         if (discountCodeRepo.count() == 0) {
@@ -266,11 +264,28 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
+        // Get existing categories (they should be created first)
+        List<Category> allCategories = categoryRepo.findAll();
+
+        // Find specific categories by name
+        Category electronics = allCategories.stream()
+                .filter(cat -> cat.getName().equals("Electronics"))
+                .findFirst().orElse(null);
+
+        Category computers = allCategories.stream()
+                .filter(cat -> cat.getName().equals("Computers"))
+                .findFirst().orElse(null);
+
+        Category audio = allCategories.stream()
+                .filter(cat -> cat.getName().equals("Audio"))
+                .findFirst().orElse(null);
+
         Product product1 = Product.builder()
                 .name("Smartphone X")
                 .description("Latest generation smartphone with OLED display.")
                 .basePrice(new BigDecimal("699.99"))
                 .totalStock(100)
+                .category(electronics)  // Assign single category
                 .build();
 
         Product product2 = Product.builder()
@@ -278,6 +293,7 @@ public class DataSeeder implements CommandLineRunner {
                 .description("Wireless headphones with noise cancellation.")
                 .basePrice(new BigDecimal("199.99"))
                 .totalStock(250)
+                .category(audio)  // Assign single category
                 .build();
 
         Product product3 = Product.builder()
@@ -285,10 +301,52 @@ public class DataSeeder implements CommandLineRunner {
                 .description("Ultralight laptop with high-performance processor.")
                 .basePrice(new BigDecimal("1299.99"))
                 .totalStock(50)
+                .category(computers)  // Assign single category
+                .build();
+
+        Product product4 = Product.builder()
+                .name("Gaming Mouse")
+                .description("High-precision gaming mouse with RGB lighting.")
+                .basePrice(new BigDecimal("79.99"))
+                .totalStock(150)
+                .category(electronics)  // Multiple products can share same category
                 .build();
 
         // Save all products to the database
-        productRepo.saveAll(List.of(product1, product2, product3));
-        System.out.println("Sample products created.");
+        productRepo.saveAll(List.of(product1, product2, product3, product4));
+        System.out.println("Sample products created with categories assigned.");
+    }
+
+
+    // Seed sample categories
+    private void seedCategories() {
+        // Check if categories already exist to avoid duplicate seeding
+        if (categoryRepo.count() > 0) {
+            return;
+        }
+
+        Category electronics = Category.builder()
+                .name("Electronics")
+                .products(new ArrayList<>())
+                .build();
+
+        Category computers = Category.builder()
+                .name("Computers")
+                .products(new ArrayList<>())
+                .build();
+
+        Category audio = Category.builder()
+                .name("Audio")
+                .products(new ArrayList<>())
+                .build();
+
+        Category mobile = Category.builder()
+                .name("Mobile Devices")
+                .products(new ArrayList<>())
+                .build();
+
+        // Save all categories to the database
+        categoryRepo.saveAll(List.of(electronics, computers, audio, mobile));
+        System.out.println("Sample categories created.");
     }
 }
