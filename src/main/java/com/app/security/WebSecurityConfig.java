@@ -32,11 +32,12 @@ public class WebSecurityConfig {
     // Public endpoints that don't require authentication
     private static final String[] PUBLIC_ENDPOINTS = {
             // Authentication and registration
-            "/", "/login", "/logout", "/register", "/register/**",
+            "/", "/api", "/login", "/logout", "/register", "/register/**",
             "/api/auth/**",
 
             // Public API endpoints
             "/api/users", "/api/users/**",
+            "/api/orders", "/api/orders/**",
             "/api/products", "/api/products/**",
             "/api/categories", "/api/categories/**",
             "/api/product-reviews", "/api/product-reviews/**",

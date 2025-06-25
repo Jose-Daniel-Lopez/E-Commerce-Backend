@@ -43,7 +43,7 @@ public class Order {
     private Payment payment;
 
     // Many-to-One relationship with DiscountCode (bidirectional)
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discount_code_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private DiscountCode discountCode;
