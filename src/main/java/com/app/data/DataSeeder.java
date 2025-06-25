@@ -4,6 +4,7 @@ import com.app.entities.*;
 import com.app.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +29,11 @@ public class DataSeeder implements CommandLineRunner {
     private final OrderItemRepository orderItemRepo;
     private final ProductVariantRepository productVariantRepo;
 
+    private final PasswordEncoder passwordEncoder;
+
     // Constructor injection for repositories
     @Autowired
-    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartRepository cartRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo, ProductVariantRepository productVariantRepo) {
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, CartRepository cartRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo, ProductVariantRepository productVariantRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.orderRepo = orderRepo;
         this.discountCodeRepo = discountCodeRepo;
@@ -41,6 +44,7 @@ public class DataSeeder implements CommandLineRunner {
         this.categoryRepo = categoryRepo;
         this.orderItemRepo = orderItemRepo;
         this.productVariantRepo = productVariantRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // This method is called when the application starts
@@ -80,31 +84,31 @@ public class DataSeeder implements CommandLineRunner {
     // Seed users with addresses and carts
     private void seedUsersWithCartsAndAddresses() {
         // Create users with addresses and carts
-        User alice = new User(null, "Alice Admin", "alice@admin.com", "admin123", "alice.png", User.Role.ADMIN);
+        User alice = new User(null, "Alice Admin", "alice@admin.com", passwordEncoder.encode("admin123"), "alice.png", User.Role.ADMIN);
         alice.addAddress(new Address("123 Main Street", "New York", "NY", "10001", "USA"));
         alice.addAddress(new Address("456 Oak Avenue", "Los Angeles", "CA", "90210", "USA"));
         Cart aliceCart = Cart.builder().createdAt(LocalDateTime.now().minusDays(5)).build();
         alice.setCart(aliceCart);
 
-        User bob = new User(null, "Bob Seller", "bob@seller.com", "seller123", "bob.png", User.Role.SELLER);
+        User bob = new User(null, "Bob Seller", "bob@seller.com", passwordEncoder.encode("seller123"), "bob.png", User.Role.SELLER);
         bob.addAddress(new Address("789 Pine Road", "Chicago", "IL", "60601", "USA"));
         bob.addAddress(new Address("321 Elm Street", "Houston", "TX", "77001", "USA"));
         Cart bobCart = Cart.builder().createdAt(LocalDateTime.now().minusDays(3)).build();
         bob.setCart(bobCart);
 
-        User carol = new User(null, "Carol Customer", "carol@customer.com", "customer123", "carol.png", User.Role.CUSTOMER);
+        User carol = new User(null, "Carol Customer", "carol@customer.com", passwordEncoder.encode("customer123"), "carol.png", User.Role.CUSTOMER);
         carol.addAddress(new Address("654 Maple Drive", "Phoenix", "AZ", "85001", "USA"));
         carol.addAddress(new Address("987 Cedar Lane", "Philadelphia", "PA", "19101", "USA"));
         carol.addAddress(new Address("147 Birch Boulevard", "San Antonio", "TX", "78201", "USA"));
         Cart carolCart = Cart.builder().createdAt(LocalDateTime.now().minusDays(1)).build();
         carol.setCart(carolCart);
 
-        User dave = new User(null, "Dave Seller", "dave@seller.com", "davepass", "dave.png", User.Role.SELLER);
+        User dave = new User(null, "Dave Seller", "dave@seller.com", passwordEncoder.encode("davepass"), "dave.png", User.Role.SELLER);
         dave.addAddress(new Address("258 Willow Way", "San Diego", "CA", "92101", "USA"));
         Cart daveCart = Cart.builder().createdAt(LocalDateTime.now().minusDays(2)).build();
         dave.setCart(daveCart);
 
-        User eve = new User(null, "Eve Customer", "eve@customer.com", "evepass", "eve.png", User.Role.CUSTOMER);
+        User eve = new User(null, "Eve Customer", "eve@customer.com", passwordEncoder.encode("evepass"), "eve.png", User.Role.CUSTOMER);
         eve.addAddress(new Address("369 Spruce Circle", "Dallas", "TX", "75201", "USA"));
         eve.addAddress(new Address("741 Ash Court", "San Jose", "CA", "95101", "USA"));
         Cart eveCart = Cart.builder().createdAt(LocalDateTime.now()).build();
@@ -284,7 +288,7 @@ public class DataSeeder implements CommandLineRunner {
         List<ProductReview> reviews = new ArrayList<>();
 
         for (User user : users) {
-            int reviewCount = switch (user.getName()) {
+            int reviewCount = switch (user.getUsername()) {
                 case "Alice Admin" -> 2;
                 case "Bob Seller" -> 1;
                 case "Carol Customer" -> 3;
@@ -297,7 +301,7 @@ public class DataSeeder implements CommandLineRunner {
 
                 ProductReview review = ProductReview.builder()
                         .rating((int) (Math.random() * 5) + 1)
-                        .comment("Review #" + i + " by " + user.getName())
+                        .comment("Review #" + i + " by " + user.getUsername())
                         .createdAt(LocalDateTime.now().minusDays(i))
                         .user(user)
                         .product(randomProduct)  // Set the product reference

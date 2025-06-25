@@ -4,7 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -15,21 +21,29 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class User {
+public class User implements UserDetails {
 
+    // ========== PRIMARY FIELDS ==========
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
     private String avatar;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
-    // One-to-Many relationship with Address (bidirectional)
+    // ========== RELATIONSHIPS ==========
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude
@@ -37,45 +51,86 @@ public class User {
     @Builder.Default
     private List<Address> addresses = new ArrayList<>();
 
-    // One-to-One relationship with Cart (bidirectional)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Cart cart;
 
-    // One-to-Many relationship with ProductReview (bidirectional)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @Builder.Default
     private List<ProductReview> productReviews = new ArrayList<>();
 
-    // One-to-Many relationship with Order (bidirectional)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @Builder.Default
     private List<Order> orders = new ArrayList<>();
 
+    // ========== ENUMS ==========
     public enum Role {
-        ADMIN,
+        CUSTOMER,
         SELLER,
-        CUSTOMER
+        ADMIN,
+        MODERATOR
     }
 
-    // Constructor remains the same
-    public User(Long id, String name, String email, String password, String avatar, Role role) {
+    // ========== USERDETAILS IMPLEMENTATION ==========
+    @Override
+    public String getUsername() {
+        return this.email; // Email is used as the username for login
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + this.role.name())
+        );
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // ========== CONSTRUCTORS ==========
+    public User(Long id, String username, String email, String password, String avatar, Role role) {
         this.id = id;
-        this.name = name;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.avatar = avatar;
         this.role = role;
         this.addresses = new ArrayList<>();
+        this.productReviews = new ArrayList<>();
+        this.orders = new ArrayList<>();
     }
 
-    // Address management methods remain the same
+    // ========== RELATIONSHIP MANAGEMENT METHODS ==========
     public void addAddress(Address address) {
         if (addresses == null) {
             addresses = new ArrayList<>();
@@ -91,7 +146,6 @@ public class User {
         }
     }
 
-    // Convenience method to manage cart relationship
     public void setCart(Cart cart) {
         if (this.cart == cart) {
             return;
@@ -108,11 +162,25 @@ public class User {
         }
     }
 
+    // ========== UTILITY METHODS ==========
+    public String getDisplayName() {
+        return this.username;
+    }
+
+    public boolean hasRole(Role role) {
+        return this.role == role;
+    }
+
+    public boolean isAdmin() {
+        return this.role == Role.ADMIN;
+    }
+
+    // ========== TO STRING ==========
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", role=" + role +
                 ", addressCount=" + (addresses != null ? addresses.size() : 0) +
@@ -120,4 +188,3 @@ public class User {
                 '}';
     }
 }
-
