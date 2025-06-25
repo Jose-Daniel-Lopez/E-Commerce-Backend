@@ -75,8 +75,7 @@ public class User implements UserDetails {
     public enum Role {
         CUSTOMER,
         SELLER,
-        ADMIN,
-        MODERATOR
+        ADMIN
     }
 
     // ========== USERDETAILS IMPLEMENTATION ==========

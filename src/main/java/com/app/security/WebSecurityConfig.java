@@ -1,6 +1,5 @@
 package com.app.security;
 
-import com.app.entities.User;
 import com.app.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
