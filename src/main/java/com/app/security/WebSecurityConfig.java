@@ -24,24 +24,18 @@ public class WebSecurityConfig {
         this.userRepo = userRepo;
     }
 
-    private final String[] publicUrl = {"/",
-            "/global-search/**",
-            "/register",
-            "/register/**",
-            "/products",
-            "/products/**",
-            "/categories",
-            "/categories/**",
-            "/webjars/**",
-            "/resources/**",
-            "/assets/**",
-            "/css/**",
-            "/summernote/**",
-            "/js/**",
-            "/*.css",
-            "/*.js",
-            "/*.js.map",
-            "/fonts**", "/favicon.ico", "/resources/**", "/error"};
+    private final String[] publicUrl = {
+            "/", // Home
+            "/login", "/logout", // Auth endpoints
+            "/register", "/register/**", // User registration
+            "/api/products", "/api/products/**", // Product catalog and details
+            "/api/categories", "/api/categories/**", // Categories
+            "/api/product-reviews", "/api/product-reviews/**", // Product reviews
+            "/api/discount-codes", "/api/discount-codes/**", // Discount codes
+            "/global-search/**", // Global search
+            "/webjars/**", "/resources/**", "/assets/**", "/css/**", "/js/**", "/fonts/**", // Static resources
+            "/*.css", "/*.js", "/*.js.map", "/favicon.ico", "/error"
+    };
 
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
