@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,60 +18,83 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final UserRepository userRepo;
+    private final UserRepository userRepository;
 
-    public WebSecurityConfig(UserRepository userRepo) {
-        this.userRepo = userRepo;
+    public WebSecurityConfig(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    private final String[] publicUrl = {
-            "/", // Home
-            "/login", "/logout", // Auth endpoints
-            "/api/auth/**", // Authentication endpoints
-            "/register", "/register/**", // User registration
-            "/api/users", "/api/users/**", // Users endpoints
-            "/api/products", "/api/products/**", // Product catalog and details
-            "/api/categories", "/api/categories/**", // Categories
-            "/api/product-reviews", "/api/product-reviews/**", // Product reviews
-            "/api/discount-codes", "/api/discount-codes/**", // Discount codes
-            "/global-search/**", // Global search
-            "/webjars/**", "/resources/**", "/assets/**", "/css/**", "/js/**", "/fonts/**", // Static resources
+    // Public endpoints that don't require authentication
+    private static final String[] PUBLIC_ENDPOINTS = {
+            // Authentication and registration
+            "/", "/login", "/logout", "/register", "/register/**",
+            "/api/auth/**",
+
+            // Public API endpoints
+            "/api/users", "/api/users/**",
+            "/api/products", "/api/products/**",
+            "/api/categories", "/api/categories/**",
+            "/api/product-reviews", "/api/product-reviews/**",
+            "/api/discount-codes", "/api/discount-codes/**",
+            "/global-search/**",
+
+            // Static resources
+            "/webjars/**", "/resources/**", "/assets/**",
+            "/css/**", "/js/**", "/fonts/**",
             "/*.css", "/*.js", "/*.js.map", "/favicon.ico", "/error"
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        HttpSecurity jsessionid = http.logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-        );
-        http
+        return http
+                // Configure CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Disable CSRF for stateless API
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Stateless session management for REST API
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Configure logout (though not used in stateless setup)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID"))
+
+                // Configure authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(publicUrl).permitAll()
-                        .anyRequest().authenticated()
-                );
-        return http.build();
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .anyRequest().authenticated())
+
+                .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Allow specific origins (consider using environment variables for production)
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+
+        // Allow common HTTP methods
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Allow all headers
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Allow credentials for authentication
         configuration.setAllowCredentials(true);
+
+        // Cache preflight requests for 1 hour
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -81,19 +103,17 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
+            throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
-            Optional<User> user = userRepo.findByEmail(username);
-            if (user.isPresent()) {
-                return (UserDetails) user.get();
-            }
-            throw new UsernameNotFoundException("User '" + username + "' not found");
-        };
+        return username -> userRepository.findByEmail(username)
+                .map(user -> (org.springframework.security.core.userdetails.UserDetails) user)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User with email '" + username + "' not found"));
     }
 
     @Bean
