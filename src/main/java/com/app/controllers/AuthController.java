@@ -2,7 +2,6 @@ package com.app.controllers;
 
 import com.app.entities.User;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;

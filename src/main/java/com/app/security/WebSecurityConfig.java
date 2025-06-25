@@ -49,6 +49,12 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        HttpSecurity jsessionid = http.logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+        );
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
@@ -57,7 +63,6 @@ public class WebSecurityConfig {
                         .requestMatchers(publicUrl).permitAll()
                         .anyRequest().authenticated()
                 );
-
         return http.build();
     }
 
