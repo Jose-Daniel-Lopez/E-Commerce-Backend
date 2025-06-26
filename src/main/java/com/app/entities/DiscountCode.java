@@ -26,7 +26,7 @@ public class DiscountCode {
     private Long id;
 
     private String code;
-    private BigDecimal discountAmount;
+    private Integer discountAmount;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate expiryDate;

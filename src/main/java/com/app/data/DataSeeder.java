@@ -122,28 +122,28 @@ public class DataSeeder implements CommandLineRunner {
     private void seedDiscountCodes() {
         DiscountCode summer25 = DiscountCode.builder()
                 .code("SUMMER25")
-                .discountAmount(new BigDecimal("25.00"))
+                .discountAmount(25)
                 .expiryDate(LocalDate.now().plusMonths(3))
                 .isActive(true)
                 .build();
 
         DiscountCode save10 = DiscountCode.builder()
                 .code("SAVE10")
-                .discountAmount(new BigDecimal("10.00"))
+                .discountAmount(10)
                 .expiryDate(LocalDate.now().plusYears(1))
                 .isActive(true)
                 .build();
 
         DiscountCode expired = DiscountCode.builder()
                 .code("WINTER_EXPIRED")
-                .discountAmount(new BigDecimal("50.00"))
+                .discountAmount(10)
                 .expiryDate(LocalDate.now().minusDays(1))
                 .isActive(true)
                 .build();
 
         DiscountCode inactive = DiscountCode.builder()
                 .code("INACTIVE")
-                .discountAmount(new BigDecimal("5.00"))
+                .discountAmount(5)
                 .expiryDate(LocalDate.now().plusYears(1))
                 .isActive(false)
                 .build();
