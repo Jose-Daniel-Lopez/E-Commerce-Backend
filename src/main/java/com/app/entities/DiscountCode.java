@@ -36,5 +36,7 @@ public class DiscountCode {
     // One-to-Many relationship with Order (bidirectional)
     @OneToMany(mappedBy = "discountCode")
     @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Order> orders;
 }
