@@ -419,8 +419,12 @@ public class DataSeeder implements CommandLineRunner {
             // Check if this order already has a payment to avoid duplicates if re-running
             if (order.getPayment() != null) continue;
 
+            // Generate a new random amount for each payment inside the loop
+            double amount = Math.round(random.nextDouble() * 100000) / 100.0;
+
             Payment payment = Payment.builder()
                     .paymentMethod(paymentMethods.get(random.nextInt(paymentMethods.size())))
+                    .amount(amount)
                     .status(paymentStatuses[random.nextInt(paymentStatuses.length)])
                     .build();
             payment.setOrder(order); // Establish the bidirectional relationship
