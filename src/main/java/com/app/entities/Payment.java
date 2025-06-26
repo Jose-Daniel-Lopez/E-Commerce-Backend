@@ -27,6 +27,9 @@ public class Payment {
     // One-to-One relationship with Order (bidirectional)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     public enum Status {
