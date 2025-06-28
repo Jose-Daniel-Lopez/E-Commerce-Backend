@@ -45,4 +45,5 @@ public class CartItem {
                 ", productVariantId=" + (productVariant != null ? productVariant.getId() : null) +
                 '}';
     }
+
 }
