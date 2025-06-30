@@ -2,6 +2,7 @@ package com.app.data;
 
 import com.app.entities.*;
 import com.app.repositories.*;
+import com.github.javafaker.Faker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,15 +10,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
+
+    // --- Configuration for Phase 1 Data Load ---
+    private static final int NUM_USERS = 200;
+    private static final int NUM_CATEGORIES = 25;
+    private static final int NUM_PRODUCTS_PER_CATEGORY = 15; // Total products = NUM_CATEGORIES * NUM_PRODUCTS_PER_CATEGORY
+    private static final int NUM_ORDERS = 300;
+    private static final int NUM_DISCOUNT_CODES = 20;
+    private static final int NUM_REVIEWS = 400;
 
     // Repositories for accessing the database
     private final UserRepository userRepo;
@@ -31,13 +42,12 @@ public class DataSeeder implements CommandLineRunner {
     private final CategoryRepository categoryRepo;
     private final OrderItemRepository orderItemRepo;
     private final ProductVariantRepository productVariantRepo;
-    private final ShippingAddressRepository shippingAddressRepo; // Added for explicit seeding of shipping addresses
-    // Note: AddressRepository is missing if Address is a separate entity
+    private final ShippingAddressRepository shippingAddressRepo;
 
     private final PasswordEncoder passwordEncoder;
+    private final Faker faker = new Faker(new Locale("es")); // Using Spanish locale for data
     private final Random random = new Random();
 
-    // Constructor injection for repositories
     @Autowired
     public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, PaymentRepository paymentRepo, CartRepository cartRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo, ProductVariantRepository productVariantRepo, PasswordEncoder passwordEncoder, ShippingAddressRepository shippingAddressRepo) {
         this.userRepo = userRepo;
@@ -55,551 +65,319 @@ public class DataSeeder implements CommandLineRunner {
         this.shippingAddressRepo = shippingAddressRepo;
     }
 
-    // This method is called when the application starts
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Seed entities in a specific order due to dependencies
-        // Check if data already exists to prevent re-seeding on every startup
+        System.out.println("Starting data seeding process...");
 
-        // Users are fundamental and needed by many other entities
-        if (userRepo.count() == 0) {
-            seedUsers();
-            // Assuming Address entity is managed within User (like in your original seedUsersWithCartsAndAddresses)
-            // If Address is a standalone entity with its own repo, a separate seedAddresses method would be needed
-            // and `seedUsers` would return the saved users to be used here.
-        }
-
-        // Carts are linked to Users
-        if (cartRepo.count() == 0) {
-            seedCarts();
-        }
-
-        // Categories must exist before products
-        if (categoryRepo.count() == 0) {
-            seedCategories();
-        }
-
-        // Products depend on Categories
-        if (productRepo.count() == 0) {
-            seedProducts();
-        }
-
-        // Product variants depend on Products
-        if (productVariantRepo.count() == 0) {
-            seedProductVariants();
-        }
-
-        // Discount codes are independent
-        if (discountCodeRepo.count() == 0) {
-            seedDiscountCodes();
-        }
-
-        // Orders depend on Users
-        if (orderRepo.count() == 0) {
-            seedOrders();
-        }
-
-        // Payments and Shipping Addresses depend on Orders.
-        // These methods will retrieve existing orders to create associated data.
-        if (paymentRepo.count() == 0) {
-            seedPayments();
-        }
-        if (shippingAddressRepo.count() == 0) {
-            seedShippingAddresses();
-        }
-
-        // Order items depend on Orders and Product Variants
-        if (orderItemRepo.count() == 0) {
-            seedOrderItems();
-        }
-
-        // Cart items depend on Carts and Product Variants
-        if (cartItemRepo.count() == 0) {
-            seedCartItems();
-        }
-
-        // Product reviews depend on Users and Products
-        if (productReviewRepo.count() == 0) {
-            seedProductReviews();
-        }
+        // The order of seeding is crucial due to entity dependencies.
+        if (userRepo.count() == 0) seedUsers();
+        if (cartRepo.count() == 0) seedCarts();
+        if (categoryRepo.count() == 0) seedCategories();
+        if (productRepo.count() == 0) seedProducts();
+        if (productVariantRepo.count() == 0) seedProductVariants();
+        if (discountCodeRepo.count() == 0) seedDiscountCodes();
+        if (orderRepo.count() == 0) seedOrders(); // Orders are created before items, payments, and addresses
+        if (orderItemRepo.count() == 0) seedOrderItemsAndUpdateTotals(); // This method now also updates order totals
+        if (paymentRepo.count() == 0) seedPayments();
+        if (shippingAddressRepo.count() == 0) seedShippingAddresses();
+        if (cartItemRepo.count() == 0) seedCartItems();
+        if (productReviewRepo.count() == 0) seedProductReviews();
 
         System.out.println("Data seeding completed successfully!");
     }
 
-    /**
-     * Seeds initial user data. This method also creates associated Address and Cart entities
-     * because they are tightly coupled in the provided original code.
-     * If Address and Cart were separate top-level entities, they would have their own seeding methods.
-     */
     private void seedUsers() {
-        if (userRepo.count() > 0) return; // Prevent re-seeding
+        if (userRepo.count() > 0) return;
+        System.out.println("Seeding users...");
+        List<User> users = new ArrayList<>();
 
-        // Create users with associated addresses and carts
-        User alice = new User(null, "Alicia Admin", "alicia@admin.com", passwordEncoder.encode("admin123"), "alicia.png", User.Role.ADMIN);
-        // Addresses are added directly to the user as per original design
-        alice.addAddress(new Address("Calle Mayor, 123", "Madrid", "Madrid", "28001", "España"));
-        alice.addAddress(new Address("Avenida de la Paz, 45", "Barcelona", "Cataluña", "08001", "España"));
+        // Create some fixed users for testing purposes
+        User admin = new User(null, "Admin User", "admin@app.com", passwordEncoder.encode("admin123"), "admin.png", User.Role.ADMIN);
+        admin.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+        users.add(admin);
 
-        User bob = new User(null, "Roberto Vendedor", "roberto@vendedor.com", passwordEncoder.encode("vendedor123"), "roberto.png", User.Role.SELLER);
-        bob.addAddress(new Address("Plaza España, 7", "Sevilla", "Andalucía", "41001", "España"));
+        User seller = new User(null, "Seller User", "seller@app.com", passwordEncoder.encode("seller123"), "seller.png", User.Role.SELLER);
+        seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+        users.add(seller);
 
-        User carol = new User(null, "Carla Cliente", "carla@cliente.com", passwordEncoder.encode("cliente123"), "carla.png", User.Role.CUSTOMER);
-        carol.addAddress(new Address("Calle del Sol, 89", "Valencia", "Comunidad Valenciana", "46001", "España"));
-        carol.addAddress(new Address("Paseo de Gracia, 1", "Barcelona", "Cataluña", "08007", "España"));
-
-        User dave = new User(null, "David Vendedor", "david@vendedor.com", passwordEncoder.encode("davidpass"), "david.png", User.Role.SELLER);
-        dave.addAddress(new Address("Calle Gran Vía, 10", "Madrid", "Madrid", "28013", "España"));
-
-        User eve = new User(null, "Eva Cliente", "eva@cliente.com", passwordEncoder.encode("evapass"), "eva.png", User.Role.CUSTOMER);
-        eve.addAddress(new Address("Rambla de Cataluña, 50", "Barcelona", "Cataluña", "08007", "España"));
-        eve.addAddress(new Address("Calle Larios, 2", "Málaga", "Andalucía", "29005", "España"));
-
-        userRepo.saveAll(List.of(alice, bob, carol, dave, eve));
-        System.out.println("Usuarios, direcciones y carritos asociados creados.");
+        // Generate the rest of the users with Faker
+        for (int i = 0; i < NUM_USERS - 2; i++) {
+            String firstName = faker.name().firstName();
+            String lastName = faker.name().lastName();
+            User user = new User(
+                    null,
+                    firstName + " " + lastName,
+                    faker.internet().emailAddress(firstName.toLowerCase() + "." + lastName.toLowerCase()),
+                    passwordEncoder.encode("user123"),
+                    "user.png",
+                    i % 5 == 0 ? User.Role.SELLER : User.Role.CUSTOMER // Make some of them sellers
+            );
+            // Add 1 to 2 addresses for each user
+            int addressCount = random.nextInt(2) + 1;
+            for (int j = 0; j < addressCount; j++) {
+                user.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+            }
+            users.add(user);
+        }
+        userRepo.saveAll(users);
+        System.out.println(users.size() + " users created.");
     }
 
-    /**
-     * Seeds initial shopping cart data for existing users.
-     * Carts are created here as they were tightly coupled to users in the original `seedUsersWithCartsAndAddresses`.
-     * This method retrieves users and assigns a new cart to any user that doesn't have one.
-     */
     private void seedCarts() {
-        if (cartRepo.count() > 0) return; // Prevent re-seeding
-
+        if (cartRepo.count() > 0) return;
+        System.out.println("Seeding carts...");
         List<User> users = userRepo.findAll();
-        List<Cart> cartsToCreate = new ArrayList<>();
+        List<Cart> carts = users.stream()
+                .filter(user -> user.getCart() == null)
+                .map(user -> {
+                    Cart cart = Cart.builder()
+                            .user(user)
+                            .createdAt(LocalDateTime.now().minusDays(random.nextInt(30)))
+                            .build();
+                    user.setCart(cart);
+                    return cart;
+                }).collect(Collectors.toList());
+        cartRepo.saveAll(carts);
+        System.out.println(carts.size() + " carts created.");
+    }
 
-        for (User user : users) {
-            // Ensure each user has a cart
-            if (user.getCart() == null) {
-                Cart cart = Cart.builder()
-                        .user(user) // Link cart to user
-                        .createdAt(LocalDateTime.now().minusDays(random.nextInt(30)))
-                        .build();
-                user.setCart(cart); // Set cart on user side for bidirectional relationship consistency
-                cartsToCreate.add(cart);
+    private void seedCategories() {
+        if (categoryRepo.count() > 0) return;
+        System.out.println("Seeding categories...");
+        Set<String> categoryNames = new HashSet<>();
+        // Ensure we get unique category names
+        while (categoryNames.size() < NUM_CATEGORIES) {
+            categoryNames.add(faker.commerce().department());
+        }
+        List<Category> categories = categoryNames.stream()
+                .map(name -> Category.builder().name(name).build())
+                .collect(Collectors.toList());
+        categoryRepo.saveAll(categories);
+        System.out.println(categories.size() + " categories created.");
+    }
+
+    private void seedProducts() {
+        if (productRepo.count() > 0) return;
+        System.out.println("Seeding products...");
+        List<Category> categories = categoryRepo.findAll();
+        if (categories.isEmpty()) {
+            System.out.println("No categories found. Skipping product seeding.");
+            return;
+        }
+        List<Product> products = new ArrayList<>();
+        for (Category category : categories) {
+            for (int i = 0; i < NUM_PRODUCTS_PER_CATEGORY; i++) {
+                products.add(Product.builder()
+                        .name(faker.commerce().productName())
+                        .description(faker.lorem().sentence(10))
+                        .basePrice(new BigDecimal(faker.commerce().price(5.00, 1500.00)).setScale(2, RoundingMode.HALF_UP))
+                        .totalStock(0) // Stock will be managed by variants
+                        .category(category)
+                        .build());
             }
         }
-        // Save carts (they will be saved via cascade if user is saved, but explicit save ensures it)
-        cartRepo.saveAll(cartsToCreate);
-        System.out.println("Carritos de muestra creados: " + cartsToCreate.size() + " carritos.");
+        productRepo.saveAll(products);
+        System.out.println(products.size() + " products created.");
     }
 
-    /**
-     * Seeds initial category data.
-     */
-    private void seedCategories() {
-        if (categoryRepo.count() > 0) return; // Prevent re-seeding
-
-        Category electronics = Category.builder().name("Electrónica").build();
-        Category computers = Category.builder().name("Informática").build();
-        Category audio = Category.builder().name("Audio").build();
-        Category mobile = Category.builder().name("Dispositivos Móviles").build();
-        Category home = Category.builder().name("Hogar").build();
-        Category gaming = Category.builder().name("Gaming").build();
-
-        categoryRepo.saveAll(List.of(electronics, computers, audio, mobile, home, gaming));
-        System.out.println("Categorías de muestra creadas.");
-    }
-
-    /**
-     * Seeds initial product data. Requires categories to be seeded first.
-     */
-    private void seedProducts() {
-        if (productRepo.count() > 0) return; // Prevent re-seeding
-
-        List<Category> allCategories = categoryRepo.findAll();
-        // Map categories by name for easy access
-        var categoriesMap = allCategories.stream()
-                .collect(Collectors.toMap(Category::getName, category -> category));
-
-        Product product1 = Product.builder()
-                .name("Smartphone Pro X")
-                .description("Última generación de smartphone con pantalla OLED y triple cámara.")
-                .basePrice(new BigDecimal("699.99"))
-                .totalStock(100)
-                .category(categoriesMap.get("Electrónica"))
-                .build();
-
-        Product product2 = Product.builder()
-                .name("Auriculares Inalámbricos Premium")
-                .description("Auriculares con cancelación de ruido activa y sonido de alta fidelidad.")
-                .basePrice(new BigDecimal("199.99"))
-                .totalStock(250)
-                .category(categoriesMap.get("Audio"))
-                .build();
-
-        Product product3 = Product.builder()
-                .name("Portátil Ultra Delgado")
-                .description("Portátil ultraligero con procesador de alto rendimiento y batería de larga duración.")
-                .basePrice(new BigDecimal("1299.99"))
-                .totalStock(50)
-                .category(categoriesMap.get("Informática"))
-                .build();
-
-        Product product4 = Product.builder()
-                .name("Ratón Gaming RGB")
-                .description("Ratón de alta precisión con iluminación RGB personalizable y botones programables.")
-                .basePrice(new BigDecimal("79.99"))
-                .totalStock(150)
-                .category(categoriesMap.get("Gaming"))
-                .build();
-
-        Product product5 = Product.builder()
-                .name("Monitor Curvo 27 pulgadas")
-                .description("Monitor Full HD curvo para una experiencia inmersiva, ideal para juegos y multimedia.")
-                .basePrice(new BigDecimal("299.99"))
-                .totalStock(75)
-                .category(categoriesMap.get("Informática"))
-                .build();
-
-        productRepo.saveAll(List.of(product1, product2, product3, product4, product5));
-        System.out.println("Productos de muestra creados con categorías asignadas.");
-    }
-
-    /**
-     * Seeds initial product variant data. Requires products to be seeded first.
-     */
     private void seedProductVariants() {
-        if (productVariantRepo.count() > 0) return; // Prevent re-seeding
-
+        if (productVariantRepo.count() > 0) return;
+        System.out.println("Seeding product variants...");
         List<Product> products = productRepo.findAll();
         if (products.isEmpty()) {
-            System.out.println("No hay productos. Omitiendo la siembra de variantes de producto.");
+            System.out.println("No products found. Skipping variant seeding.");
             return;
         }
-
         List<ProductVariant> variants = new ArrayList<>();
-
         for (Product product : products) {
-            switch (product.getName()) {
-                case "Smartphone Pro X" -> {
-                    variants.add(createVariant(product, "128GB", "Negro", 25, "SPX-128-NEG-001"));
-                    variants.add(createVariant(product, "256GB", "Blanco", 20, "SPX-256-BLA-002"));
-                    variants.add(createVariant(product, "512GB", "Azul", 15, "SPX-512-AZU-003"));
-                }
-                case "Auriculares Inalámbricos Premium" -> {
-                    variants.add(createVariant(product, "Estándar", "Negro", 50, "AIP-STD-NEG-001"));
-                    variants.add(createVariant(product, "Estándar", "Plata", 30, "AIP-STD-PLA-002"));
-                }
-                case "Portátil Ultra Delgado" -> {
-                    variants.add(createVariant(product, "8GB/256GB SSD", "Gris Espacial", 10, "PUD-8256-GE-001"));
-                    variants.add(createVariant(product, "16GB/512GB SSD", "Gris Espacial", 8, "PUD-16512-GE-002"));
-                    variants.add(createVariant(product, "16GB/1TB SSD", "Plata", 5, "PUD-161TB-PLA-003"));
-                }
-                case "Ratón Gaming RGB" -> {
-                    variants.add(createVariant(product, "Estándar", "Negro", 40, "RGR-STD-NEG-001"));
-                    variants.add(createVariant(product, "RGB", "Multicolor", 35, "RGR-RGB-MUL-002"));
-                }
-                case "Monitor Curvo 27 pulgadas" -> {
-                    variants.add(createVariant(product, "27 pulg.", "Negro", 75, "MC27-NEG-001"));
-                }
-                default -> {
-                    variants.add(createVariant(product, "Estándar", "Defecto", 20,
-                            generateSKU(product.getName(), "STD", "DEF")));
-                }
+            int variantCount = random.nextInt(4) + 1; // 1 to 4 variants per product
+            int totalStockForProduct = 0;
+            for (int i = 0; i < variantCount; i++) {
+                int stock = random.nextInt(100) + 10; // 10 to 109 stock per variant
+                totalStockForProduct += stock;
+                variants.add(ProductVariant.builder()
+                        .size(faker.options().option("S", "M", "L", "XL", "Talla Única"))
+                        .color(faker.color().name())
+                        .stock(stock)
+                        .sku(generateSKU(product.getName()))
+                        .product(product)
+                        .build());
             }
+            product.setTotalStock(totalStockForProduct); // Update product's total stock
         }
+        productRepo.saveAll(products); // Save products to update their stock counts
         productVariantRepo.saveAll(variants);
-        System.out.println("Variantes de producto de muestra creadas: " + variants.size() + " variantes.");
+        System.out.println(variants.size() + " product variants created.");
     }
 
-    /**
-     * Helper method to create a ProductVariant instance.
-     */
-    private ProductVariant createVariant(Product product, String size, String color, Integer stock, String sku) {
-        return ProductVariant.builder()
-                .size(size)
-                .color(color)
-                .stock(stock)
-                .sku(sku)
-                .product(product)
-                .build();
-    }
-
-    /**
-     * Helper method to generate a SKU for product variants.
-     */
-    private String generateSKU(String productName, String size, String color) {
+    private String generateSKU(String productName) {
         String prefix = productName.substring(0, Math.min(3, productName.length())).toUpperCase();
-        String sizeCode = size.substring(0, Math.min(3, size.length())).toUpperCase();
-        String colorCode = color.substring(0, Math.min(3, color.length())).toUpperCase();
-        return String.format("%s-%s-%s-%03d", prefix, sizeCode, colorCode, random.nextInt(999) + 1);
+        return String.format("%s-%04d-%03d", prefix, random.nextInt(10000), random.nextInt(1000));
     }
 
-    /**
-     * Seeds initial discount code data.
-     */
     private void seedDiscountCodes() {
-        if (discountCodeRepo.count() > 0) return; // Prevent re-seeding
-
-        DiscountCode summer25 = DiscountCode.builder()
-                .code("VERANO25")
-                .discountAmount(25)
-                .expiryDate(LocalDate.now().plusMonths(3))
-                .isActive(true)
-                .build();
-
-        DiscountCode save10 = DiscountCode.builder()
-                .code("AHORRA10")
-                .discountAmount(10)
-                .expiryDate(LocalDate.now().plusYears(1))
-                .isActive(true)
-                .build();
-
-        DiscountCode expired = DiscountCode.builder()
-                .code("INVIERNO_EXPIRADO")
-                .discountAmount(10)
-                .expiryDate(LocalDate.now().minusDays(1))
-                .isActive(true)
-                .build();
-
-        DiscountCode inactive = DiscountCode.builder()
-                .code("INACTIVO")
-                .discountAmount(5)
-                .expiryDate(LocalDate.now().plusYears(1))
-                .isActive(false)
-                .build();
-
-        discountCodeRepo.saveAll(List.of(summer25, save10, expired, inactive));
-        System.out.println("Códigos de descuento creados.");
+        if (discountCodeRepo.count() > 0) return;
+        System.out.println("Seeding discount codes...");
+        List<DiscountCode> codes = new ArrayList<>();
+        for (int i = 0; i < NUM_DISCOUNT_CODES; i++) {
+            codes.add(DiscountCode.builder()
+                    .code(faker.commerce().promotionCode().toUpperCase())
+                    .discountAmount(random.nextInt(50) + 5) // 5 to 54 percent/amount
+                    .expiryDate(faker.date().future(180, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                    .isActive(random.nextBoolean())
+                    .build());
+        }
+        discountCodeRepo.saveAll(codes);
+        System.out.println(codes.size() + " discount codes created.");
     }
 
-    /**
-     * Seeds initial order data. Requires users to be seeded first.
-     */
     private void seedOrders() {
-        if (orderRepo.count() > 0) return; // Prevent re-seeding
-
+        if (orderRepo.count() > 0) return;
+        System.out.println("Seeding orders...");
         List<User> users = userRepo.findAll();
-        if (users.isEmpty()) {
-            System.out.println("No se encontraron usuarios. Omitiendo la siembra de órdenes.");
-            return;
+        if (users.isEmpty()) return;
+
+        List<Order> orders = new ArrayList<>();
+        Order.Status[] statuses = Order.Status.values();
+        for (int i = 0; i < NUM_ORDERS; i++) {
+            orders.add(Order.builder()
+                    .orderDate(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                    .status(statuses[random.nextInt(statuses.length)])
+                    .totalAmount(BigDecimal.ZERO) // Will be calculated and updated later
+                    .user(users.get(random.nextInt(users.size())))
+                    .build());
         }
-
-        List<Order> ordersToCreate = new ArrayList<>();
-        Order.Status[] orderStatuses = Order.Status.values();
-
-        for (User user : users) {
-            int orderCount = random.nextInt(2) + 1; // Each user gets 1-2 orders
-
-            for (int i = 0; i < orderCount; i++) {
-                Order order = Order.builder()
-                        .orderDate(LocalDateTime.now().minusDays(random.nextInt(30)))
-                        .status(orderStatuses[random.nextInt(orderStatuses.length)])
-                        .totalAmount(BigDecimal.ZERO) // Will be calculated by OrderItems
-                        .user(user)
-                        .build();
-                ordersToCreate.add(order);
-            }
-        }
-        orderRepo.saveAll(ordersToCreate);
-        System.out.println("Órdenes de muestra creadas: " + ordersToCreate.size() + " órdenes.");
+        orderRepo.saveAll(orders);
+        System.out.println(orders.size() + " orders created.");
     }
 
-    /**
-     * Seeds initial payment data. Requires orders to be seeded first.
-     * Payments are created for each existing order.
-     */
-    private void seedPayments() {
-        if (paymentRepo.count() > 0) return; // Prevent re-seeding
-
-        List<Order> orders = orderRepo.findAll();
-        if (orders.isEmpty()) {
-            System.out.println("No se encontraron órdenes. Omitiendo la siembra de pagos.");
-            return;
-        }
-
-        List<Payment> paymentsToCreate = new ArrayList<>();
-        List<String> paymentMethods = List.of("Tarjeta de Crédito", "PayPal", "Transferencia Bancaria");
-        Payment.Status[] paymentStatuses = Payment.Status.values();
-
-        for (Order order : orders) {
-            // Check if this order already has a payment to avoid duplicates if re-running
-            if (order.getPayment() != null) continue;
-
-            // Generate a new random amount for each payment inside the loop
-            double amount = Math.round(random.nextDouble() * 100000) / 100.0;
-
-            Payment payment = Payment.builder()
-                    .paymentMethod(paymentMethods.get(random.nextInt(paymentMethods.size())))
-                    .amount(amount)
-                    .status(paymentStatuses[random.nextInt(paymentStatuses.length)])
-                    .build();
-            payment.setOrder(order); // Establish the bidirectional relationship
-            paymentsToCreate.add(payment);
-        }
-        paymentRepo.saveAll(paymentsToCreate);
-        System.out.println("Pagos de muestra creados: " + paymentsToCreate.size() + " pagos.");
-    }
-
-    /**
-     * Seeds initial shipping address data. Requires orders to be seeded first.
-     * A shipping address is created for each existing order.
-     */
-    private void seedShippingAddresses() {
-        if (shippingAddressRepo.count() > 0) return; // Prevent re-seeding
-
-        List<Order> orders = orderRepo.findAll();
-        if (orders.isEmpty()) {
-            System.out.println("No se encontraron órdenes. Omitiendo la siembra de direcciones de envío.");
-            return;
-        }
-
-        List<ShippingAddress> shippingAddressesToCreate = new ArrayList<>();
-        String[] streetNames = {"Calle Principal", "Avenida de los Álamos", "Ronda del Mar", "Paseo de la Montaña", "Plaza Mayor"};
-        String[] cities = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza", "Málaga", "Bilbao", "Alicante"};
-        String[] provinces = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza", "Málaga", "Bizkaia", "Alicante"};
-        String country = "España";
-
-        for (Order order : orders) {
-            // Check if this order already has a shipping address to avoid duplicates
-            // This assumes a bidirectional relationship or a way to check if one exists.
-            // If ShippingAddress is truly one-to-one with Order and unidirectional from ShippingAddress,
-            // you might need to query shippingAddressRepo by order ID.
-            // For simplicity, we assume an order won't have two shipping addresses in test data.
-            // if (order.getShippingAddress() != null) continue; // If Order had a shippingAddress field
-
-            String street = streetNames[random.nextInt(streetNames.length)] + ", " + (random.nextInt(99) + 1);
-            String city = cities[random.nextInt(cities.length)];
-            String province = provinces[random.nextInt(provinces.length)];
-            String zipCode = String.format("%05d", random.nextInt(100000)); // Generates 5-digit zip code
-
-            ShippingAddress address = ShippingAddress.builder()
-                    .street(street)
-                    .city(city)
-                    .state(province) // Using 'state' for province/region
-                    .zipCode(zipCode)
-                    .country(country)
-                    .order(order) // Associate the address with the order
-                    .build();
-            shippingAddressesToCreate.add(address);
-        }
-        shippingAddressRepo.saveAll(shippingAddressesToCreate);
-        System.out.println("Direcciones de envío de muestra creadas: " + shippingAddressesToCreate.size() + " direcciones.");
-    }
-
-    /**
-     * Seeds initial order item data. Requires orders and product variants to be seeded first.
-     * Each order will have 2-4 items.
-     */
-    private void seedOrderItems() {
-        if (orderItemRepo.count() > 0) return; // Prevent re-seeding
-
+    private void seedOrderItemsAndUpdateTotals() {
+        if (orderItemRepo.count() > 0) return;
+        System.out.println("Seeding order items and updating order totals...");
         List<Order> orders = orderRepo.findAll();
         List<ProductVariant> variants = productVariantRepo.findAll();
-
-        if (orders.isEmpty() || variants.isEmpty()) {
-            System.out.println("No se encontraron órdenes o variantes de producto. Omitiendo la siembra de ítems de orden.");
-            return;
-        }
+        if (orders.isEmpty() || variants.isEmpty()) return;
 
         List<OrderItem> orderItems = new ArrayList<>();
-
         for (Order order : orders) {
-            int itemCount = random.nextInt(3) + 2; // 2 to 4 items per order
+            int itemCount = random.nextInt(5) + 1; // 1 to 5 items per order
+            BigDecimal orderTotal = BigDecimal.ZERO;
+            Set<ProductVariant> usedVariants = new HashSet<>();
 
             for (int i = 0; i < itemCount; i++) {
-                ProductVariant randomVariant = variants.get(random.nextInt(variants.size()));
-                int quantity = random.nextInt(5) + 1; // 1 to 5 units of each item
-                BigDecimal unitPrice = randomVariant.getProduct().getBasePrice();
+                ProductVariant variant;
+                // Ensure we don't add the same product variant twice to the same order
+                do {
+                    variant = variants.get(random.nextInt(variants.size()));
+                } while (usedVariants.contains(variant));
+                usedVariants.add(variant);
 
-                OrderItem orderItem = OrderItem.builder()
+                int quantity = random.nextInt(3) + 1;
+                BigDecimal unitPrice = variant.getProduct().getBasePrice();
+                BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+                orderTotal = orderTotal.add(itemTotal);
+
+                orderItems.add(OrderItem.builder()
                         .quantity(quantity)
-                        .unitPrice(unitPrice) // Use product's base price for simplicity or variant price if applicable
+                        .unitPrice(unitPrice)
                         .order(order)
-                        .productVariant(randomVariant)
-                        .build();
-                orderItems.add(orderItem);
+                        .productVariant(variant)
+                        .build());
             }
+            order.setTotalAmount(orderTotal.setScale(2, RoundingMode.HALF_UP));
         }
         orderItemRepo.saveAll(orderItems);
-        System.out.println("Ítems de orden de muestra creados: " + orderItems.size() + " ítems.");
+        orderRepo.saveAll(orders); // Save orders again to update total amounts
+        System.out.println(orderItems.size() + " order items created and order totals updated.");
     }
 
-    /**
-     * Seeds initial cart item data for existing carts. Requires carts and product variants to be seeded first.
-     * Each cart will have 1-3 items.
-     */
-    private void seedCartItems() {
-        if (cartItemRepo.count() > 0) return; // Prevent re-seeding
+    private void seedPayments() {
+        if (paymentRepo.count() > 0) return;
+        System.out.println("Seeding payments...");
+        List<Order> orders = orderRepo.findAll();
+        if (orders.isEmpty()) return;
 
+        List<String> paymentMethods = List.of("Tarjeta de Crédito", "PayPal", "Transferencia Bancaria", "Bizum");
+        Payment.Status[] statuses = Payment.Status.values();
+        List<Payment> payments = orders.stream()
+                .filter(order -> order.getPayment() == null && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)
+                .map(order -> {
+                    Payment payment = Payment.builder()
+                            .paymentMethod(paymentMethods.get(random.nextInt(paymentMethods.size())))
+                            .amount(order.getTotalAmount().doubleValue())
+                            .status(statuses[random.nextInt(statuses.length)])
+                            .build();
+                    payment.setOrder(order);
+                    return payment;
+                }).collect(Collectors.toList());
+        paymentRepo.saveAll(payments);
+        System.out.println(payments.size() + " payments created.");
+    }
+
+    private void seedShippingAddresses() {
+        if (shippingAddressRepo.count() > 0) return;
+        System.out.println("Seeding shipping addresses...");
+        List<Order> orders = orderRepo.findAll();
+        if (orders.isEmpty()) return;
+
+        List<ShippingAddress> addresses = orders.stream()
+                .map(order -> ShippingAddress.builder()
+                        .street(faker.address().streetAddress())
+                        .city(faker.address().city())
+                        .state(faker.address().state())
+                        .zipCode(faker.address().zipCode())
+                        .country("España")
+                        .order(order)
+                        .build())
+                .collect(Collectors.toList());
+        shippingAddressRepo.saveAll(addresses);
+        System.out.println(addresses.size() + " shipping addresses created.");
+    }
+
+    private void seedCartItems() {
+        if (cartItemRepo.count() > 0) return;
+        System.out.println("Seeding cart items...");
         List<Cart> carts = cartRepo.findAll();
         List<ProductVariant> variants = productVariantRepo.findAll();
-
-        if (carts.isEmpty() || variants.isEmpty()) {
-            System.out.println("No se encontraron carritos o variantes de producto. Omitiendo la siembra de ítems de carrito.");
-            return;
-        }
+        if (carts.isEmpty() || variants.isEmpty()) return;
 
         List<CartItem> cartItems = new ArrayList<>();
-
         for (Cart cart : carts) {
-            int itemCount = random.nextInt(3) + 1; // 1 to 3 items per cart
-
-            for (int i = 0; i < itemCount; i++) {
-                ProductVariant randomVariant = variants.get(random.nextInt(variants.size()));
-                int quantity = random.nextInt(3) + 1; // 1 to 3 units of each item
-
-                CartItem cartItem = CartItem.builder()
-                        .quantity(quantity)
-                        .cart(cart)
-                        .productVariant(randomVariant)
-                        .build();
-                cartItems.add(cartItem);
+            // Only add items to some carts to simulate active and abandoned carts
+            if (random.nextDouble() < 0.7) { // 70% of carts will have items
+                int itemCount = random.nextInt(4) + 1; // 1 to 4 items
+                for (int i = 0; i < itemCount; i++) {
+                    cartItems.add(CartItem.builder()
+                            .quantity(random.nextInt(3) + 1)
+                            .cart(cart)
+                            .productVariant(variants.get(random.nextInt(variants.size())))
+                            .build());
+                }
             }
         }
         cartItemRepo.saveAll(cartItems);
-        System.out.println("Ítems de carrito de muestra creados: " + cartItems.size() + " ítems.");
+        System.out.println(cartItems.size() + " cart items created.");
     }
 
-    /**
-     * Seeds initial product review data. Requires users and products to be seeded first.
-     */
     private void seedProductReviews() {
-        if (productReviewRepo.count() > 0) return; // Prevent re-seeding
-
+        if (productReviewRepo.count() > 0) return;
+        System.out.println("Seeding product reviews...");
         List<User> users = userRepo.findAll();
         List<Product> products = productRepo.findAll();
-
-        if (users.isEmpty() || products.isEmpty()) {
-            System.out.println("No se encontraron usuarios o productos. Omitiendo la siembra de reseñas de productos.");
-            return;
-        }
+        if (users.isEmpty() || products.isEmpty()) return;
 
         List<ProductReview> reviews = new ArrayList<>();
-
-        for (User user : users) {
-            int reviewCount = switch (user.getUsername()) {
-                case "Alicia Admin" -> 2;
-                case "Roberto Vendedor" -> 1;
-                case "Carla Cliente" -> 3;
-                default -> 1; // Default for others
-            };
-
-            for (int i = 1; i <= reviewCount; i++) {
-                Product randomProduct = products.get(random.nextInt(products.size()));
-                String commentText = "Reseña #" + i + " de " + user.getUsername() + " sobre " + randomProduct.getName() + ".";
-
-                // Add some variety to comments
-                if (random.nextBoolean()) {
-                    commentText += " ¡Excelente producto, muy recomendado!";
-                } else {
-                    commentText += " Buen valor por el precio.";
-                }
-
-                ProductReview review = ProductReview.builder()
-                        .rating(random.nextInt(5) + 1) // Rating from 1 to 5
-                        .comment(commentText)
-                        .createdAt(LocalDateTime.now().minusDays(random.nextInt(60))) // Reviews from last 60 days
-                        .user(user)
-                        .product(randomProduct)
-                        .build();
-                reviews.add(review);
-            }
+        for (int i = 0; i < NUM_REVIEWS; i++) {
+            reviews.add(ProductReview.builder()
+                    .rating(random.nextInt(5) + 1) // 1 to 5 stars
+                    .comment(faker.lorem().paragraph(2))
+                    .createdAt(faker.date().past(365 * 2, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                    .user(users.get(random.nextInt(users.size())))
+                    .product(products.get(random.nextInt(products.size())))
+                    .build());
         }
         productReviewRepo.saveAll(reviews);
-        System.out.println("Reseñas de productos creadas : " + reviews.size() + " reseñas.");
+        System.out.println(reviews.size() + " product reviews created.");
     }
 }
