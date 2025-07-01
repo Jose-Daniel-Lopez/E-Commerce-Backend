@@ -26,18 +26,19 @@ public class Product {
 
     private String name;
     private String description;
-    private boolean isFeatured;
+
+    @Column(name = "is_featured")
+    private Boolean isFeatured;
+
     private BigDecimal basePrice;
     private Integer totalStock;
 
-    // One-to-Many relationship with ProductReview (bidirectional)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductReview> productReviews = new ArrayList<>();
 
-    // Many-to-One relationship with Category (bidirectional)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     @JsonBackReference
@@ -45,7 +46,6 @@ public class Product {
     @EqualsAndHashCode.Exclude
     private Category category;
 
-    // One-to-Many relationship with ProductVariant (bidirectional)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude

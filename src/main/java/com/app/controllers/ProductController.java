@@ -35,7 +35,7 @@ public class ProductController {
             Pageable pageable
     ) {
         if (featured != null) {
-            return productRepo.findByFeatured(featured, pageable);
+            return productRepo.findByIsFeatured(featured, pageable);
         }
         return productRepo.findAll(pageable);
     }

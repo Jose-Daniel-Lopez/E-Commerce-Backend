@@ -13,6 +13,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // For example, to find products by name:
     // List<Product> findByNameContainingIgnoreCase(String name);
 
-    Page<Product> findByFeatured(Boolean featured, Pageable pageable);
-
+    Page<Product> findByIsFeatured(Boolean isFeatured, Pageable pageable);
 }

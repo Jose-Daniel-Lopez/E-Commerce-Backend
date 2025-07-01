@@ -171,6 +171,7 @@ public class DataSeeder implements CommandLineRunner {
                 products.add(Product.builder()
                         .name(faker.commerce().productName())
                         .description(faker.lorem().sentence(10))
+                        .isFeatured(random.nextBoolean() && i < 3)
                         .basePrice(new BigDecimal(faker.commerce().price(5.00, 1500.00)).setScale(2, RoundingMode.HALF_UP))
                         .totalStock(0) // Stock will be managed by variants
                         .category(category)
