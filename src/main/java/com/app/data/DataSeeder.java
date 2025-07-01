@@ -168,12 +168,14 @@ public class DataSeeder implements CommandLineRunner {
         List<Product> products = new ArrayList<>();
         for (Category category : categories) {
             for (int i = 0; i < NUM_PRODUCTS_PER_CATEGORY; i++) {
+                boolean isFeatured = random.nextBoolean() && i < 3;
+
                 products.add(Product.builder()
                         .name(faker.commerce().productName())
                         .description(faker.lorem().sentence(10))
-                        .isFeatured(random.nextBoolean() && i < 3)
+                        .isFeatured(isFeatured)
                         .basePrice(new BigDecimal(faker.commerce().price(5.00, 1500.00)).setScale(2, RoundingMode.HALF_UP))
-                        .totalStock(0) // Stock will be managed by variants
+                        .totalStock(0)
                         .category(category)
                         .build());
             }

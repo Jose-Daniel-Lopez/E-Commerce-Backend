@@ -27,8 +27,9 @@ public class Product {
     private String name;
     private String description;
 
-    @Column(name = "is_featured")
-    private Boolean isFeatured;
+    @Column(name = "is_featured", nullable = false)
+    @Builder.Default
+    private Boolean isFeatured = false;
 
     private BigDecimal basePrice;
     private Integer totalStock;

@@ -30,13 +30,7 @@ public class ProductController {
 
     // Endpoint to get products with optional featured filter
     @GetMapping("/featured")
-    public Page<Product> getProducts(
-            @RequestParam(required = false) Boolean featured,
-            Pageable pageable
-    ) {
-        if (featured != null) {
-            return productRepo.findByIsFeatured(featured, pageable);
-        }
-        return productRepo.findAll(pageable);
+    public Page<Product> getFeaturedProducts(Pageable pageable) {
+        return productRepo.findByIsFeatured(true, pageable);
     }
 }
