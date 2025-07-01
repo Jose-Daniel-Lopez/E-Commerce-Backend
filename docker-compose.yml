@@ -11,6 +11,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  app:
+    build: .
+    container_name: ecommerce_backend
+    environment:
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecommerce_db
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: ecommerce_pgadmin
