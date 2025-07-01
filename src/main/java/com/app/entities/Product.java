@@ -26,6 +26,7 @@ public class Product {
 
     private String name;
     private String description;
+    private boolean isFeatured;
     private BigDecimal basePrice;
     private Integer totalStock;
 
