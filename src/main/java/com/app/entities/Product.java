@@ -26,6 +26,7 @@ public class Product {
 
     private String name;
     private String description;
+    private String brand;
 
     @Column(name = "is_featured", nullable = false)
     @Builder.Default

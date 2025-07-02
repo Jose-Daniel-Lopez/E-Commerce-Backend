@@ -30,6 +30,13 @@ public class DataSeeder implements CommandLineRunner {
     private static final int NUM_DISCOUNT_CODES = 20;
     private static final int NUM_REVIEWS = 400;
 
+    // Technology brands for products
+    private static final List<String> TECH_BRANDS = Arrays.asList(
+            "Apple", "Samsung", "Xiaomi", "Pocco", "Google Pixel", "Huawei",
+            "OnePlus", "Sony", "LG", "Motorola", "Oppo", "Vivo", "Realme",
+            "Honor", "Nothing", "Asus", "Nokia", "TCL", "Fairphone", "RedMagic"
+    );
+
     // Repositories for accessing the database
     private final UserRepository userRepo;
     private final OrderRepository orderRepo;
@@ -172,6 +179,7 @@ public class DataSeeder implements CommandLineRunner {
 
                 products.add(Product.builder()
                         .name(faker.commerce().productName())
+                        .brand(TECH_BRANDS.get(random.nextInt(TECH_BRANDS.size())))
                         .description(faker.lorem().sentence(10))
                         .isFeatured(isFeatured)
                         .basePrice(new BigDecimal(faker.commerce().price(5.00, 1500.00)).setScale(2, RoundingMode.HALF_UP))
