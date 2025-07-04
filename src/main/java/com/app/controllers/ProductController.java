@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Scanner;
 
 @RestController
@@ -32,5 +33,14 @@ public class ProductController {
     @GetMapping("/featured")
     public Page<Product> getFeaturedProducts(Pageable pageable) {
         return productRepo.findByIsFeatured(true, pageable);
+    }
+
+    // Endpoint to get products with optional brand filter
+    @GetMapping
+    public List<Product> getProducts(@RequestParam(required = false) String brand) {
+        if (brand != null) {
+            return productService.findByBrand(brand);
+        }
+        return productRepo.findAll();
     }
 }
