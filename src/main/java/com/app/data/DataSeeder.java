@@ -152,11 +152,20 @@ public class DataSeeder implements CommandLineRunner {
     private void seedCategories() {
         if (categoryRepo.count() > 0) return;
         System.out.println("Seeding categories...");
-        Set<String> categoryNames = new HashSet<>();
-        // Ensure we get unique category names
-        while (categoryNames.size() < NUM_CATEGORIES) {
-            categoryNames.add(faker.commerce().department());
-        }
+        List<String> categoryNames = Arrays.asList(
+            "Moviles",
+            "Relojes Inteligentes",
+            "Camaras",
+            "Auriculares",
+            "Ordenadores",
+            "Teclados",
+            "Ratones",
+            "Gaming",
+            "Tablets",
+            "Hogar Inteligente",
+            "Audio",
+            "Accesorios"
+        );
         List<Category> categories = categoryNames.stream()
                 .map(name -> Category.builder().name(name).build())
                 .collect(Collectors.toList());
@@ -392,3 +401,4 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println(reviews.size() + " product reviews created.");
     }
 }
+
