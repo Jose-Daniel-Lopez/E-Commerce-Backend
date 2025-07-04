@@ -168,7 +168,7 @@ public class DataSeeder implements CommandLineRunner {
         );
 
         List<String> categoryIcons = Arrays.asList(
-                "gi-smart-phone",
+                "gi-smartphone",
                 "bi-smartwatch",
                 "bi-camera",
                 "la-headphones-solid",
