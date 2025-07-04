@@ -153,21 +153,40 @@ public class DataSeeder implements CommandLineRunner {
         if (categoryRepo.count() > 0) return;
         System.out.println("Seeding categories...");
         List<String> categoryNames = Arrays.asList(
-            "Moviles",
-            "Relojes Inteligentes",
-            "Camaras",
-            "Auriculares",
-            "Ordenadores",
-            "Teclados",
-            "Ratones",
+            "Smartphones",
+            "Smartwatches",
+            "Cameras",
+            "Headphones",
+            "Computers",
+            "Keyboards",
+            "Mice",
             "Gaming",
             "Tablets",
-            "Hogar Inteligente",
+            "Smart Home",
             "Audio",
-            "Accesorios"
+            "Gadgets"
         );
-        List<Category> categories = categoryNames.stream()
-                .map(name -> Category.builder().name(name).build())
+
+        List<String> categoryIcons = Arrays.asList(
+                "gi-smart-phone",
+                "bi-smartwatch",
+                "bi-camera",
+                "la-headphones-solid",
+                "bi-laptop",
+                "bi-keyboard",
+                "bi-mouse",
+                "gi-console-controller",
+                "co-tablet",
+                "ri-home-wifi-line",
+                "hi-music-note",
+                "md-cable"
+        );
+
+        List<Category> categories = IntStream.range(0, categoryNames.size())
+                .mapToObj(i -> Category.builder()
+                        .name(categoryNames.get(i))
+                        .icon(categoryIcons.get(i))
+                        .build())
                 .collect(Collectors.toList());
         categoryRepo.saveAll(categories);
         System.out.println(categories.size() + " categories created.");

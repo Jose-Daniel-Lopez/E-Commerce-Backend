@@ -25,6 +25,8 @@ public class Category {
 
     private String name;
 
+    private String icon;
+
     // One-to-Many relationship with Product (bidirectional)
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
