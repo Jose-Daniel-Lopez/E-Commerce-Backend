@@ -59,7 +59,7 @@ public class Product {
     private String screenSize;
 
     private String cpu;
-    private String memoria;
+    private String memory;
 
     @Column(name = "number_of_cores")
     private Integer numberOfCores;

@@ -34,4 +34,9 @@ public class ProductController {
     public Page<Product> getFeaturedProducts(Pageable pageable) {
         return productRepo.findByIsFeatured(true, pageable);
     }
+
+    @GetMapping("/brands")
+    public List<String> getAllBrands() {
+        return productService.getAllBrands();
+    }
 }
