@@ -19,7 +19,7 @@ public class ProductService {
         this.productRepo = productRepo;
     }
 
-    public List<Product> findByBrand(String brand) {
-        return productRepo.findByBrand(brand);
+    public List<Product> getAllProducts() {
+        return productRepo.findAll();
     }
 }

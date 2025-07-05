@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -23,19 +22,40 @@ import java.util.stream.IntStream;
 public class DataSeeder implements CommandLineRunner {
 
     // --- Configuration for Phase 1 Data Load ---
-    private static final int NUM_USERS = 200;
-    private static final int NUM_CATEGORIES = 25;
-    private static final int NUM_PRODUCTS_PER_CATEGORY = 15; // Total products = NUM_CATEGORIES * NUM_PRODUCTS_PER_CATEGORY
-    private static final int NUM_ORDERS = 300;
-    private static final int NUM_DISCOUNT_CODES = 20;
-    private static final int NUM_REVIEWS = 400;
+    private static final int NUM_USERS = 50;
+    private static final int NUM_PRODUCTS_PER_CATEGORY = 15;
+    private static final int NUM_ORDERS = 50;
+    private static final int NUM_DISCOUNT_CODES = 10;
+    private static final int NUM_REVIEWS = 70;
 
     // Technology brands for products
     private static final List<String> TECH_BRANDS = Arrays.asList(
-            "Apple", "Samsung", "Xiaomi", "Pocco", "Google Pixel", "Huawei",
-            "OnePlus", "Sony", "LG", "Motorola", "Oppo", "Vivo", "Realme",
-            "Honor", "Nothing", "Asus", "Nokia", "TCL", "Fairphone", "RedMagic"
+            "Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus",
+            "Sony", "LG", "Motorola", "Oppo", "Vivo", "Realme", "Honor",
+            "Nothing", "Asus", "Nokia", "TCL", "Fairphone", "RedMagic",
+            "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer",
+            "Logitech", "Corsair", "SteelSeries", "HyperX", "Alienware"
     );
+
+    // Tech product names by category
+    private static final Map<String, List<String>> PRODUCT_NAMES = createProductNamesMap();
+
+    private static Map<String, List<String>> createProductNamesMap() {
+        Map<String, List<String>> map = new HashMap<>();
+        map.put("Smartphones", Arrays.asList("Pro Max", "Ultra", "Edge", "Note", "Pixel", "Find X", "Mi", "Galaxy", "iPhone", "Xperia"));
+        map.put("Smartwatches", Arrays.asList("Watch", "Fit", "Active", "Classic", "Sport", "SE", "Ultra", "Pro"));
+        map.put("Cameras", Arrays.asList("Alpha", "EOS", "Z", "X-T", "GH", "D", "R", "FX", "Lumix", "Cyber-shot"));
+        map.put("Headphones", Arrays.asList("WH", "QuietComfort", "Studio", "Pro", "Max", "Elite", "Momentum", "HD", "ATH", "DT"));
+        map.put("Computers", Arrays.asList("MacBook", "ThinkPad", "XPS", "Spectre", "ZenBook", "Pavilion", "IdeaPad", "Surface", "Legion", "ROG"));
+        map.put("Keyboards", Arrays.asList("MX Keys", "K", "Huntsman", "BlackWidow", "Alloy", "G", "Pro X", "Das Keyboard", "WASD", "Ducky"));
+        map.put("Mice", Arrays.asList("MX Master", "G Pro", "DeathAdder", "Basilisk", "Model", "Pulsefire", "Rival", "EC", "FK", "ZA"));
+        map.put("Gaming", Arrays.asList("Call of Duty", "FIFA", "Assassin's Creed", "The Witcher", "Cyberpunk", "God of War", "Spider-Man", "Horizon", "Elden Ring", "Halo"));
+        map.put("Tablets", Arrays.asList("iPad", "Galaxy Tab", "Surface", "MatePad", "Tab", "Pixel Slate", "Fire", "Mi Pad", "Tab S", "Pro"));
+        map.put("Smart Home", Arrays.asList("Echo", "Nest", "Ring", "Philips Hue", "TP-Link Kasa", "SmartThings", "HomeKit", "Alexa", "Google Home", "Wyze"));
+        map.put("Audio", Arrays.asList("HomePod", "Echo Studio", "Sonos", "JBL", "Bose", "Bang & Olufsen", "KEF", "Klipsch", "Yamaha", "Denon"));
+        map.put("Accessories", Arrays.asList("MagSafe", "USB-C", "Lightning", "Wireless Charger", "Power Bank", "Stand", "Case", "Screen Protector", "Cable", "Adapter"));
+        return map;
+    }
 
     // Repositories for accessing the database
     private final UserRepository userRepo;
@@ -52,7 +72,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ShippingAddressRepository shippingAddressRepo;
 
     private final PasswordEncoder passwordEncoder;
-    private final Faker faker = new Faker(new Locale("es")); // Using Spanish locale for data
+    private final Faker faker = new Faker(Locale.ENGLISH);
     private final Random random = new Random();
 
     @Autowired
@@ -75,7 +95,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        System.out.println("Starting data seeding process...");
+        System.out.println("Starting tech e-commerce data seeding process...");
 
         // The order of seeding is crucial due to entity dependencies.
         if (userRepo.count() == 0) seedUsers();
@@ -91,24 +111,24 @@ public class DataSeeder implements CommandLineRunner {
         if (cartItemRepo.count() == 0) seedCartItems();
         if (productReviewRepo.count() == 0) seedProductReviews();
 
-        System.out.println("Data seeding completed successfully!");
+        System.out.println("Tech e-commerce data seeding completed successfully!");
     }
 
     private void seedUsers() {
         if (userRepo.count() > 0) return;
-        System.out.println("Seeding users...");
+        System.out.println("Seeding tech users...");
         List<User> users = new ArrayList<>();
 
         // Create some fixed users for testing purposes
-        User admin = new User(null, "Admin User", "admin@app.com", passwordEncoder.encode("admin123"), "admin.png", User.Role.ADMIN);
-        admin.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+        User admin = new User(null, "Tech Admin", "admin@techstore.com", passwordEncoder.encode("admin123"), "admin.png", User.Role.ADMIN);
+        admin.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         users.add(admin);
 
-        User seller = new User(null, "Seller User", "seller@app.com", passwordEncoder.encode("seller123"), "seller.png", User.Role.SELLER);
-        seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+        User seller = new User(null, "Tech Seller", "seller@techstore.com", passwordEncoder.encode("seller123"), "seller.png", User.Role.SELLER);
+        seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         users.add(seller);
 
-        // Generate the rest of the users with Faker
+        // Generate the rest of the users with tech-focused names
         for (int i = 0; i < NUM_USERS - 2; i++) {
             String firstName = faker.name().firstName();
             String lastName = faker.name().lastName();
@@ -118,17 +138,17 @@ public class DataSeeder implements CommandLineRunner {
                     faker.internet().emailAddress(firstName.toLowerCase() + "." + lastName.toLowerCase()),
                     passwordEncoder.encode("user123"),
                     "user.png",
-                    i % 5 == 0 ? User.Role.SELLER : User.Role.CUSTOMER // Make some of them sellers
+                    i % 5 == 0 ? User.Role.SELLER : User.Role.CUSTOMER
             );
             // Add 1 to 2 addresses for each user
             int addressCount = random.nextInt(2) + 1;
             for (int j = 0; j < addressCount; j++) {
-                user.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "España"));
+                user.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
             }
             users.add(user);
         }
         userRepo.saveAll(users);
-        System.out.println(users.size() + " users created.");
+        System.out.println(users.size() + " tech users created.");
     }
 
     private void seedCarts() {
@@ -164,7 +184,7 @@ public class DataSeeder implements CommandLineRunner {
             "Tablets",
             "Smart Home",
             "Audio",
-            "Gadgets"
+            "Accessories"
         );
 
         List<String> categoryIcons = Arrays.asList(
@@ -205,15 +225,114 @@ public class DataSeeder implements CommandLineRunner {
             for (int i = 0; i < NUM_PRODUCTS_PER_CATEGORY; i++) {
                 boolean isFeatured = random.nextBoolean() && i < 3;
 
-                products.add(Product.builder()
+                Product.ProductBuilder productBuilder = Product.builder()
                         .name(faker.commerce().productName())
                         .brand(TECH_BRANDS.get(random.nextInt(TECH_BRANDS.size())))
                         .description(faker.lorem().sentence(10))
                         .isFeatured(isFeatured)
                         .basePrice(new BigDecimal(faker.commerce().price(5.00, 1500.00)).setScale(2, RoundingMode.HALF_UP))
                         .totalStock(0)
-                        .category(category)
-                        .build());
+                        .category(category);
+
+                switch (category.getName()) {
+                    case "Smartphones":
+                        productBuilder
+                                .screenSize(faker.options().option("6.1\"", "6.5\"", "6.7\""))
+                                .cpu(faker.options().option("A16 Bionic", "Snapdragon 8 Gen 2", "Tensor G2"))
+                                .memoria(faker.options().option("128GB", "256GB", "512GB"))
+                                .numberOfCores(new Integer[]{8, 10, 12}[random.nextInt(3)])
+                                .camera(faker.options().option("48MP", "50MP", "108MP"))
+                                .frontCamera(faker.options().option("12MP", "16MP"))
+                                .battery(faker.options().option("4000mAh", "4500mAh", "5000mAh"));
+                        break;
+                    case "Smartwatches":
+                        productBuilder
+                                .displaySize(faker.options().option("1.4\"", "1.6\"", "1.9\""))
+                                .batteryLife(faker.options().option("18 hours", "24 hours", "3 days"))
+                                .waterResistance(faker.options().option("5 ATM", "IP68"))
+                                .connectivity(faker.options().option("Bluetooth, Wi-Fi, Cellular", "Bluetooth, Wi-Fi"))
+                                .healthSensors(faker.options().option("Heart Rate, SpO2, ECG", "Heart Rate, SpO2"))
+                                .compatibility(faker.options().option("iOS", "Android", "iOS & Android"));
+                        break;
+                    case "Cameras":
+                        productBuilder
+                                .resolution(faker.options().option("24MP", "33MP", "61MP"))
+                                .sensorType(faker.options().option("Full-Frame CMOS", "APS-C", "Micro Four Thirds"))
+                                .lensMount(faker.options().option("Sony E-Mount", "Canon RF", "Nikon Z"))
+                                .videoResolution(faker.options().option("4K 60fps", "8K 30fps", "1080p 120fps"))
+                                .isoRange(faker.options().option("100-51200", "100-32000"))
+                                .opticalZoom(faker.options().option("3x", "5x", "10x"));
+                        break;
+                    case "Headphones":
+                        productBuilder
+                                .driverSize(faker.options().option("40mm", "50mm"))
+                                .frequencyResponse(faker.options().option("20Hz - 20kHz", "15Hz - 25kHz"))
+                                .impedance(faker.options().option("32 Ohm", "64 Ohm"))
+                                .noiseCancel(random.nextBoolean())
+                                .bluetoothVersion(faker.options().option("5.0", "5.2", "5.3"));
+                        break;
+                    case "Computers":
+                        productBuilder
+                                .processorModel(faker.options().option("Intel Core i7", "AMD Ryzen 9", "Apple M2 Pro"))
+                                .ramCapacity(new Integer[]{16, 32, 64}[random.nextInt(3)])
+                                .storageType(faker.options().option("SSD", "NVMe SSD"))
+                                .storageCapacity(new Integer[]{512, 1024, 2048}[random.nextInt(3)])
+                                .graphicsCard(faker.options().option("NVIDIA RTX 4070", "AMD Radeon RX 7800 XT", "Integrated"))
+                                .operatingSystem(faker.options().option("Windows 11", "macOS Ventura", "Linux"));
+                        break;
+                    case "Keyboards":
+                        productBuilder
+                                .keyType(faker.options().option("Mechanical", "Membrane"))
+                                .layout(faker.options().option("QWERTY", "AZERTY"))
+                                .backlight(faker.options().option("RGB", "White", "None"))
+                                .keyProfile(faker.options().option("High Profile", "Low Profile"))
+                                .ergonomic(random.nextBoolean());
+                        break;
+                    case "Mice":
+                        productBuilder
+                                .dpi(new Integer[]{8000, 12000, 16000}[random.nextInt(3)])
+                                .programmableButtons(random.nextBoolean());
+                        break;
+                    case "Gaming":
+                        productBuilder
+                                .platform(faker.options().option("PlayStation 5", "Xbox Series X", "PC", "Nintendo Switch"))
+                                .gameGenre(faker.options().option("RPG", "Action", "Shooter", "Strategy"))
+                                .playerCount(new Integer[]{1, 2, 4}[random.nextInt(3)])
+                                .onlineMultiplayer(random.nextBoolean())
+                                .systemRequirements(faker.lorem().sentence(5))
+                                .ageRating(faker.options().option("PEGI 18", "PEGI 12", "Everyone"));
+                        break;
+                    case "Tablets":
+                        productBuilder
+                                .screenSize(faker.options().option("10.2\"", "11\"", "12.9\""))
+                                .resolution(faker.options().option("2160x1620", "2388x1668", "2732x2048"))
+                                .storageCapacity(new Integer[]{64, 128, 256}[random.nextInt(3)])
+                                .ramCapacity(new Integer[]{4, 8, 16}[random.nextInt(3)])
+                                .operatingSystem(faker.options().option("iPadOS", "Android"))
+                                .batteryLife(faker.options().option("10 hours", "12 hours"));
+                        break;
+                    case "Smart Home":
+                        productBuilder
+                                .powerSource(faker.options().option("Battery", "Plug-in"))
+                                .controlMethod(faker.options().option("App", "Voice Assistant", "Remote"))
+                                .automationFeatures(faker.lorem().sentence(3))
+                                .securityFeatures(faker.lorem().sentence(3));
+                        break;
+                    case "Audio":
+                        productBuilder
+                                .powerOutput(new Integer[]{20, 50, 100}[random.nextInt(3)])
+                                .speakerConfiguration(faker.options().option("2.1", "5.1", "Stereo"));
+                        break;
+                    case "Accessories":
+                        productBuilder
+                                .material(faker.commerce().material())
+                                .dimensions(String.format("%d x %d x %d cm", random.nextInt(20) + 1, random.nextInt(20) + 1, random.nextInt(5) + 1))
+                                .weight(String.format("%d g", random.nextInt(500) + 50))
+                                .warranty(faker.options().option("1 year", "2 years", "Lifetime"))
+                                .color(faker.color().name());
+                        break;
+                }
+                products.add(productBuilder.build());
             }
         }
         productRepo.saveAll(products);
@@ -337,7 +456,7 @@ public class DataSeeder implements CommandLineRunner {
         List<Order> orders = orderRepo.findAll();
         if (orders.isEmpty()) return;
 
-        List<String> paymentMethods = List.of("Tarjeta de Crédito", "PayPal", "Transferencia Bancaria", "Bizum");
+        List<String> paymentMethods = List.of("Credit Card", "PayPal", "Apple Pay", "Google Pay", "Stripe", "Bank Transfer");
         Payment.Status[] statuses = Payment.Status.values();
         List<Payment> payments = orders.stream()
                 .filter(order -> order.getPayment() == null && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)

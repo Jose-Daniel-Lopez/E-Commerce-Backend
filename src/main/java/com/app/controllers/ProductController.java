@@ -34,13 +34,4 @@ public class ProductController {
     public Page<Product> getFeaturedProducts(Pageable pageable) {
         return productRepo.findByIsFeatured(true, pageable);
     }
-
-    // Endpoint to get products with optional brand filter
-    @GetMapping
-    public List<Product> getProducts(@RequestParam(required = false) String brand) {
-        if (brand != null) {
-            return productService.findByBrand(brand);
-        }
-        return productRepo.findAll();
-    }
 }
