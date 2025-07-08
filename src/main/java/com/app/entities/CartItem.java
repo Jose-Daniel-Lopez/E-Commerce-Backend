@@ -3,6 +3,8 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -19,6 +21,8 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Quantity is required")
+    @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
 
     // Many-to-One relationship with Cart (bidirectional)
@@ -27,6 +31,7 @@ public class CartItem {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonBackReference
+    @NotNull(message = "Cart is required")
     private Cart cart;
 
     // Many-to-One relationship with ProductVariant
@@ -34,6 +39,7 @@ public class CartItem {
     @JoinColumn(name = "product_variant_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @NotNull(message = "Product variant is required")
     private ProductVariant productVariant;
 
     @Override
