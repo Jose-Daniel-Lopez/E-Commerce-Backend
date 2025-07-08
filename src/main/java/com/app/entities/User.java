@@ -3,6 +3,8 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,12 +31,16 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false)
+    @NotBlank(message = "Username cannot be blank")
     private String username;
 
     @Column(nullable = false, unique = true)
+    @Email(message = "Email must be valid")
+    @NotBlank(message = "Email cannot be blank")
     private String email;
 
     @Column(nullable = false)
+    @NotBlank(message = "Password cannot be blank")
     private String password;
 
     private String avatar;

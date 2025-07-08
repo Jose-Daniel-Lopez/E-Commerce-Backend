@@ -2,6 +2,8 @@ package com.app.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,7 +22,10 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "Unit price must be at least 0")
     private BigDecimal unitPrice;
 
     // Many-to-One relationship with Order (bidirectional)

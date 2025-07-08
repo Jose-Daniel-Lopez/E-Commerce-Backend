@@ -3,6 +3,9 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
@@ -19,9 +22,16 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Size(max = 50, message = "Size cannot exceed 50 characters")
     private String size;
+
+    @Size(max = 30, message = "Color cannot exceed 30 characters")
     private String color;
+
+    @Min(value = 0, message = "Stock must be at least 0")
     private Integer stock;
+
+    @NotBlank(message = "SKU cannot be blank")
     private String sku; // Stock Keeping Unit
 
     // Many-to-One relationship with Product (bidirectional)

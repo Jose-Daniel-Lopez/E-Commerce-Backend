@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -24,15 +27,20 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Product name cannot be blank")
     private String name;
+    @NotBlank(message = "Product description cannot be blank")
     private String description;
+    @NotBlank(message = "Product brand cannot be blank")
     private String brand;
 
     @Column(name = "is_featured", nullable = false)
     @Builder.Default
     private Boolean isFeatured = false;
 
+    @DecimalMin(value = "0.0", inclusive = true, message = "Base price must be at least 0")
     private BigDecimal basePrice;
+    @Min(value = 0, message = "Total stock must be at least 0")
     private Integer totalStock;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -28,11 +30,17 @@ public class Order {
     private Long id;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Column(nullable = false)
+    @NotNull(message = "Order date cannot be null")
     private LocalDateTime orderDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @jakarta.validation.constraints.NotNull(message = "Order status cannot be null")
     private Status status;
 
+    @Column(nullable = false)
+    @DecimalMin(value = "0.0", inclusive = true, message = "Total amount must be at least 0")
     private BigDecimal totalAmount;
 
     // One-to-One relationship with Payment (bidirectional)
