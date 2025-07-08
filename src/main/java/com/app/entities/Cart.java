@@ -3,6 +3,8 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -25,6 +27,7 @@ public class Cart {
     private Long id;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @NotNull(message = "Creation date is required")
     private LocalDateTime createdAt;
 
     // One-to-One relationship with User (bidirectional)
@@ -32,6 +35,7 @@ public class Cart {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @NotNull(message = "User is required")
     private User user;
 
     // One-to-Many relationship with CartItem (bidirectional)
@@ -39,6 +43,7 @@ public class Cart {
     @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @Size(max = 100, message = "Cart cannot have more than 100 items")
     private List<CartItem> cartItems = new ArrayList<>();
 
 
