@@ -39,4 +39,9 @@ public class ProductController {
     public List<String> getAllBrands() {
         return productService.getAllBrands();
     }
+
+    @GetMapping("/memories")
+    public List<String> getAllMemoryOptions() {
+        return productService.getAllMemoryOptions();
+    }
 }

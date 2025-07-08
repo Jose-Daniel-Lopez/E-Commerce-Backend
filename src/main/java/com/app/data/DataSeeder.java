@@ -191,7 +191,7 @@ public class DataSeeder implements CommandLineRunner {
                             cpu = faker.options().option("Snapdragon 8 Gen 3", "Dimensity 9300");
                         }
                         productBuilder.cpu(cpu)
-                                .memory(faker.options().option("128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"))
+                                .memory(faker.options().option("32GB","64GB","128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"))
                                 .camera(faker.options().option("48MP", "50MP", "200MP"));
                         break;
                     case "Computers":

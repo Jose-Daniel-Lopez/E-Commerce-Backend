@@ -28,4 +28,13 @@ public class ProductService {
     public List<String> getAllBrands() {
         return productRepo.findAllDistinctBrands();
     }
+
+    private static final List<String> MEMORY_OPTIONS = List.of(
+            "32GB", "64GB", "128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"
+    );
+
+    // Return all memory options
+    public List<String> getAllMemoryOptions() {
+        return MEMORY_OPTIONS;
+    }
 }

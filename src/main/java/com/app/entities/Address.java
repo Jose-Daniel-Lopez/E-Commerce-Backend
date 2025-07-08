@@ -3,6 +3,9 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
@@ -19,10 +22,24 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Street cannot be null")
+    @Size(max = 100, message = "Street cannot exceed 255 characters")
     private String street;
+
+    @NotNull(message = "City cannot be null")
+    @Size(max = 50, message = "City cannot exceed 50 characters")
     private String city;
+
+    @NotNull(message = "State cannot be null")
+    @Size(max = 50, message = "State cannot exceed 50 characters")
     private String state;
+
+    @NotNull(message = "Zip code cannot be null")
+    @Pattern(regexp = "\\d{5}(-\\d{4})?", message = "Invalid zip code format")
     private String zipCode;
+
+    @NotNull(message = "Country cannot be null")
+    @Size(max = 50, message = "Country cannot exceed 50 characters")
     private String country;
 
     // Many-to-One relationship with User (bidirectional)

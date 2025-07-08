@@ -18,4 +18,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL")
     List<String> findAllDistinctBrands();
 
+    @Query("SELECT DISTINCT p.memory FROM Product p WHERE p.memory IS NOT NULL")
+    List<String> findAllDistinctMemoryOptions();
+
 }
