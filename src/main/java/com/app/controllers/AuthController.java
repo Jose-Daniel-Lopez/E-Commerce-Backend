@@ -28,10 +28,16 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            // Obtener el usuario autenticado
+            // Get the authenticated user
             User user = (User) auth.getPrincipal();
 
-            // Crear respuesta con información del usuario
+            // Check if the user is verified
+            if (!user.isVerified()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ErrorResponse("Account not verified. Please check your email for the verification link."));
+            }
+
+            // Create the response object with user details
             LoginResponse response = new LoginResponse();
             response.setMessage("Login successful");
             response.setUser(new UserInfo(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name()));

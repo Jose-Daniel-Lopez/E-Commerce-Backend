@@ -3,6 +3,7 @@ package com.app.controllers;
 import com.app.DTO.RegisterDTO;
 import com.app.entities.User;
 import com.app.repositories.UserRepository;
+import com.app.services.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,11 +23,13 @@ public class RegistrationController {
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Autowired
-    public RegistrationController(UserRepository userRepo, PasswordEncoder passwordEncoder) {
+    public RegistrationController(UserRepository userRepo, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -47,10 +51,37 @@ public class RegistrationController {
                 .role(registerDTO.getRole() != null ? registerDTO.getRole() : User.Role.CUSTOMER)
                 .build();
 
+        // Generate verification token
+        String verificationToken = UUID.randomUUID().toString();
+        newUser.setVerificationToken(verificationToken);
+        newUser.setVerified(false);
+
         User savedUser = userRepo.save(newUser);
+
+        // Send verification email
+        String verificationLink = "http://localhost:8080/api/auth/verify?token=" + verificationToken;
+        emailService.sendEmail(
+            savedUser.getEmail(),
+            "Verify your account",
+            "Hello " + savedUser.getUsername() + ",\n\nPlease verify your account by clicking the link below:\n" + verificationLink
+        );
 
         // Build success response
         return ResponseEntity.ok(createSuccessResponse(savedUser));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyAccount(@RequestParam("token") String token) {
+        User user = userRepo.findByVerificationToken(token);
+        if (user == null) {
+            return errorResponse("Invalid or expired verification token", HttpStatus.BAD_REQUEST);
+        }
+
+        user.setVerified(true);
+        user.setVerificationToken(null);
+        userRepo.save(user);
+
+        return ResponseEntity.ok(Collections.singletonMap("message", "Account verified successfully"));
     }
 
     // Creates standardized error response

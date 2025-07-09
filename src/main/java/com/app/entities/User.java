@@ -49,6 +49,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean isVerified = false;
+
+    @Column(unique = true)
+    private String verificationToken;
+
     // ========== RELATIONSHIPS ==========
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
