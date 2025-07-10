@@ -1,6 +1,7 @@
 package com.app.controllers;
 
 import com.app.entities.User;
+import com.app.security.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,9 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -37,9 +41,13 @@ public class AuthController {
                         .body(new ErrorResponse("Account not verified. Please check your email for the verification link."));
             }
 
-            // Create the response object with user details
+            // Generate JWT token
+            String token = jwtUtil.generateToken(user);
+
+            // Create the response object with user details and token
             LoginResponse response = new LoginResponse();
             response.setMessage("Login successful");
+            response.setToken(token);
             response.setUser(new UserInfo(user.getId(), user.getUsername(), user.getEmail(), user.getRole().name()));
 
             return ResponseEntity.ok(response);
@@ -61,6 +69,7 @@ public class AuthController {
     @Setter
     public static class LoginResponse {
         private String message;
+        private String token;
         private UserInfo user;
     }
 

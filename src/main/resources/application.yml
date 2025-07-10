@@ -55,3 +55,8 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:myDefaultSecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmAndMustBeSecure}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
