@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitFilter implements Filter {
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
     private static final int LIMIT = 100; // 100 requests
-    private static final Duration DURATION = Duration.ofMinutes(1); // per minute
+    private static final Duration DURATION = Duration.ofMinutes(1); // In a 1-minute window
 
     private Bucket resolveBucket(String ip) {
         return buckets.computeIfAbsent(ip, k -> Bucket4j.builder()
