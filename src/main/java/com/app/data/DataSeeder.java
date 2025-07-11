@@ -260,8 +260,14 @@ public class DataSeeder implements CommandLineRunner {
         seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         users.add(seller);
 
+        // --- Hardcoded test user ---
+        User testUser = new User(null, "test", "test@test.com", passwordEncoder.encode("123456"), "user.png", User.Role.CUSTOMER);
+        testUser.setVerified(true);
+        testUser.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+        users.add(testUser);
+
         // Generate the rest of the users with tech-focused names
-        for (int i = 0; i < NUM_USERS - 2; i++) {
+        for (int i = 0; i < NUM_USERS - 3; i++) {
             String firstName = faker.name().firstName();
             String lastName = faker.name().lastName();
             User user = new User(
@@ -518,3 +524,4 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println(reviews.size() + " product reviews created.");
     }
 }
+

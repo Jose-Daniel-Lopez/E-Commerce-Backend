@@ -70,6 +70,12 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/cart/**", "/api/orders/**").authenticated()
                         .anyRequest().permitAll()
                 )
+                .logout(logout -> logout
+                        .logoutUrl("/api/logout")
+                        .logoutSuccessUrl("/api/auth/login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -91,7 +97,6 @@ public class WebSecurityConfig {
             throws Exception {
         return authConfig.getAuthenticationManager();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
