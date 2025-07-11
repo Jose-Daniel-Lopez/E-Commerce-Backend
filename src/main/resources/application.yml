@@ -27,10 +27,10 @@ spring:
       base-path: /api
 
   mail:
-    host: "sandbox.smtp.mailtrap.io"
-    port: 587
-    username: "720a20023ee943"
-    password: "6e2eb0d9e4b9a6"
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
