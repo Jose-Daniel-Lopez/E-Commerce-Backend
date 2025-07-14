@@ -3,7 +3,6 @@ package com.app.controllers;
 import com.app.DTO.RegisterDTO;
 import com.app.entities.User;
 import com.app.repositories.UserRepository;
-import com.app.services.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,13 +22,11 @@ public class RegistrationController {
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
 
     @Autowired
-    public RegistrationController(UserRepository userRepo, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public RegistrationController(UserRepository userRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
     }
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -58,13 +55,6 @@ public class RegistrationController {
 
         User savedUser = userRepo.save(newUser);
 
-        // Send verification email
-        String verificationLink = "http://localhost:8080/api/auth/verify?token=" + verificationToken;
-        emailService.sendEmail(
-            savedUser.getEmail(),
-            "Verify your account",
-            "Hello " + savedUser.getUsername() + ",\n\nPlease verify your account by clicking the link below:\n" + verificationLink
-        );
 
         // Build success response
         return ResponseEntity.ok(createSuccessResponse(savedUser));
@@ -91,12 +81,14 @@ public class RegistrationController {
     }
 
     // Creates standardized success response
+    // Creates standardized success response
     private Map<String, Object> createSuccessResponse(User user) {
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("id", user.getId());
         userInfo.put("username", user.getUsername());
         userInfo.put("email", user.getEmail());
         userInfo.put("role", user.getRole().toString());
+        userInfo.put("verificationToken", user.getVerificationToken());
 
         Map<String, Object> response = new HashMap<>();
         response.put("user", userInfo);
