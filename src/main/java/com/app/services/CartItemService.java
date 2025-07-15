@@ -37,4 +37,10 @@ public class CartItemService {
         cartItem.setQuantity(newQuantity);
         return cartItemRepo.save(cartItem);
     }
+
+    // Method to find a CartItem by its ID
+    public CartItem findById(Long cartItemId) {
+        return cartItemRepo.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + cartItemId));
+    }
 }

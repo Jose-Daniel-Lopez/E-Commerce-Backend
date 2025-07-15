@@ -253,11 +253,13 @@ public class DataSeeder implements CommandLineRunner {
 
         // Create some fixed users for testing purposes
         User admin = new User(null, "Tech Admin", "admin@techstore.com", passwordEncoder.encode("admin123"), "admin.png", User.Role.ADMIN);
+        admin.setVerified(true);
         admin.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         users.add(admin);
 
         User seller = new User(null, "Tech Seller", "seller@techstore.com", passwordEncoder.encode("seller123"), "seller.png", User.Role.SELLER);
         seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+        seller.setVerified(true);
         users.add(seller);
 
         // --- Hardcoded test user ---
@@ -283,6 +285,7 @@ public class DataSeeder implements CommandLineRunner {
             for (int j = 0; j < addressCount; j++) {
                 user.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
             }
+            user.setVerified(true); // Ensure all users are verified
             users.add(user);
         }
         userRepo.saveAll(users);

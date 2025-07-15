@@ -39,4 +39,14 @@ public class CartItemController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/{cartItemId}")
+    public ResponseEntity<CartItem> getCartItemById(@PathVariable Long cartItemId) {
+        CartItem cartItem = cartItemService.findById(cartItemId);
+        if (cartItem != null) {
+            return ResponseEntity.ok(cartItem);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
