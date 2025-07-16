@@ -1,9 +1,11 @@
 package com.app.controllers;
 
+import com.app.DTO.UserDTO;
 import com.app.DTO.UserPatchDTO;
 import com.app.entities.User;
 import com.app.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +31,13 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public User getCurrentUser(@AuthenticationPrincipal User user) {
-        return user;
+    public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal User user) {
+        // Returns the current authenticated user as a UserDTO
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        UserDTO userDTO = new UserDTO(user);
+        return ResponseEntity.ok(userDTO);
     }
 
     @PatchMapping("/{id}")

@@ -194,8 +194,8 @@
                     ", username='" + username + '\'' +
                     ", email='" + email + '\'' +
                     ", role=" + role +
-                    ", addressCount=" + (addresses != null ? addresses.size() : 0) +
-                    ", hasCart=" + (cart != null) +
+                    ", isVerified=" + isVerified +
                     '}';
         }
+
     }
