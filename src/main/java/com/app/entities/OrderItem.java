@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
@@ -31,6 +32,7 @@ public class OrderItem {
     // Many-to-One relationship with Order (bidirectional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
     private Order order;
 
     // Many-to-One relationship with ProductVariant (bidirectional)

@@ -1,15 +1,19 @@
     package com.app.entities;
 
+    import com.fasterxml.jackson.annotation.JsonFormat;
     import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
     import com.fasterxml.jackson.annotation.JsonManagedReference;
     import jakarta.persistence.*;
     import jakarta.validation.constraints.Email;
     import jakarta.validation.constraints.NotBlank;
+    import jakarta.validation.constraints.NotNull;
     import lombok.*;
+    import org.springframework.format.annotation.DateTimeFormat;
     import org.springframework.security.core.GrantedAuthority;
     import org.springframework.security.core.authority.SimpleGrantedAuthority;
     import org.springframework.security.core.userdetails.UserDetails;
 
+    import java.time.LocalDateTime;
     import java.util.ArrayList;
     import java.util.Collection;
     import java.util.Collections;
@@ -39,11 +43,16 @@
         @NotBlank(message = "Email cannot be blank")
         private String email;
 
+        private String location;
+
         @Column(nullable = false)
         @NotBlank(message = "Password cannot be blank")
         private String password;
 
         private String avatar;
+
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime createdAt;
 
         @Enumerated(EnumType.STRING)
         @Column(nullable = false)

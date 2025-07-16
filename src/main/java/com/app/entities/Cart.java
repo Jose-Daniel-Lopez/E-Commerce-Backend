@@ -1,5 +1,6 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -33,6 +34,7 @@ public class Cart {
     // One-to-One relationship with User (bidirectional)
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @NotNull(message = "User is required")
