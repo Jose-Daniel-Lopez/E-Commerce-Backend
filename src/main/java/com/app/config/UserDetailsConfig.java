@@ -17,9 +17,10 @@ public class UserDetailsConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByEmail(username)
+        return login -> userRepository.findByEmail(login)
+                .or(() -> userRepository.findByUsername(login))
                 .map(user -> (org.springframework.security.core.userdetails.UserDetails) user)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "User with email '" + username + "' not found"));
+                        "User with email or username '" + login + "' not found"));
     }
 }

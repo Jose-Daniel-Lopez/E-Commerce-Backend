@@ -41,4 +41,10 @@ public class UserService {
         // Save the updated user back to the repository
         return userRepo.save(user);
     }
+
+    public User getUserById(Long id) {
+        // Find the user by ID
+        return userRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    }
 }

@@ -100,15 +100,6 @@
         }
 
         // ========== USERDETAILS IMPLEMENTATION ==========
-        @Override
-        public String getUsername() {
-            return this.email; // Email is used as the username for login
-        }
-
-        @Override
-        public String getPassword() {
-            return this.password;
-        }
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
