@@ -22,6 +22,10 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Address name cannot be null")
+    @Size(max = 100, message = "Address name cannot exceed 100 characters")
+    private String name;
+
     @NotNull(message = "Street cannot be null")
     @Size(max = 100, message = "Street cannot exceed 255 characters")
     private String street;
@@ -50,7 +54,8 @@ public class Address {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    public Address(String street, String city, String state, String zipCode, String country) {
+    public Address(String name, String street, String city, String state, String zipCode, String country) {
+        this.name = name;
         this.street = street;
         this.city = city;
         this.state = state;

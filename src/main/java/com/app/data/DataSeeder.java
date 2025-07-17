@@ -254,12 +254,12 @@ public class DataSeeder implements CommandLineRunner {
         // Create some fixed users for testing purposes
         User admin = new User(null, "Tech Admin", "admin@techstore.com", passwordEncoder.encode("admin123"), "admin.png", User.Role.ADMIN);
         admin.setVerified(true);
-        admin.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+        admin.addAddress(new Address(faker.name().title(), faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         admin.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(365)));
         users.add(admin);
 
         User seller = new User(null, "Tech Seller", "seller@techstore.com", passwordEncoder.encode("seller123"), "seller.png", User.Role.SELLER);
-        seller.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+        seller.addAddress(new Address(faker.name().title(), faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         seller.setVerified(true);
         seller.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(365)));
         users.add(seller);
@@ -267,7 +267,7 @@ public class DataSeeder implements CommandLineRunner {
         // --- Hardcoded test user ---
         User testUser = new User(null, "test", "test@test.com", passwordEncoder.encode("123456"), "user.png", User.Role.CUSTOMER);
         testUser.setVerified(true);
-        testUser.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+        testUser.addAddress(new Address(faker.name().title(), faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
         testUser.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(365)));
         users.add(testUser);
 
@@ -286,7 +286,7 @@ public class DataSeeder implements CommandLineRunner {
             // Add 1 to 2 addresses for each user
             int addressCount = random.nextInt(2) + 1;
             for (int j = 0; j < addressCount; j++) {
-                user.addAddress(new Address(faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
+                user.addAddress(new Address(faker.name().title(), faker.address().streetAddress(), faker.address().city(), faker.address().state(), faker.address().zipCode(), "United States"));
             }
             user.setVerified(true); // Ensure all users are verified - This is for testing purposes
             user.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(365)));
