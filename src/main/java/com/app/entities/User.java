@@ -65,6 +65,8 @@
         private String verificationToken;
 
         // ========== RELATIONSHIPS ==========
+
+        // Addresses
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonManagedReference
         @ToString.Exclude
@@ -72,12 +74,14 @@
         @Builder.Default
         private List<Address> addresses = new ArrayList<>();
 
+        // Carts
         @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         @JsonManagedReference
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Cart cart;
 
+        // Product Reviews
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonManagedReference
         @ToString.Exclude
@@ -85,12 +89,19 @@
         @Builder.Default
         private List<ProductReview> productReviews = new ArrayList<>();
 
+        // Orders
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonManagedReference
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         @Builder.Default
         private List<Order> orders = new ArrayList<>();
+
+        // Wishlists
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
+        private List<Wishlist> wishlists = new ArrayList<>();
 
         // ========== ENUMS ==========
         public enum Role {

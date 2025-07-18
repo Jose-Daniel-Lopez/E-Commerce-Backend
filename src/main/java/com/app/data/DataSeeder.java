@@ -96,28 +96,28 @@ public class DataSeeder implements CommandLineRunner {
     private final OrderItemRepository orderItemRepo;
     private final ProductVariantRepository productVariantRepo;
     private final ShippingAddressRepository shippingAddressRepo;
+    private final WishlistRepository wishlistRepo;
 
     private final PasswordEncoder passwordEncoder;
     private final Faker faker = new Faker(Locale.ENGLISH);
     private final Random random = new Random();
 
-    @Autowired
-    public DataSeeder(UserRepository u, OrderRepository o, DiscountCodeRepository d, PaymentRepository p, CartRepository c, CartItemRepository ci, ProductReviewRepository pr, ProductRepository pRepo, CategoryRepository catRepo, OrderItemRepository oi, ProductVariantRepository pv, PasswordEncoder pe, ShippingAddressRepository sa) {
-        this.userRepo = u;
-        this.orderRepo = o;
-        this.discountCodeRepo = d;
-        this.paymentRepo = p;
-        this.cartRepo = c;
-        this.cartItemRepo = ci;
-        this.productReviewRepo = pr;
-        this.productRepo = pRepo;
-        this.categoryRepo = catRepo;
-        this.orderItemRepo = oi;
-        this.productVariantRepo = pv;
-        this.passwordEncoder = pe;
-        this.shippingAddressRepo = sa;
+    public DataSeeder(UserRepository userRepo, OrderRepository orderRepo, DiscountCodeRepository discountCodeRepo, PaymentRepository paymentRepo, CartRepository cartRepo, CartItemRepository cartItemRepo, ProductReviewRepository productReviewRepo, ProductRepository productRepo, CategoryRepository categoryRepo, OrderItemRepository orderItemRepo, ProductVariantRepository productVariantRepo, ShippingAddressRepository shippingAddressRepo, WishlistRepository wishlistRepo, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
+        this.orderRepo = orderRepo;
+        this.discountCodeRepo = discountCodeRepo;
+        this.paymentRepo = paymentRepo;
+        this.cartRepo = cartRepo;
+        this.cartItemRepo = cartItemRepo;
+        this.productReviewRepo = productReviewRepo;
+        this.productRepo = productRepo;
+        this.categoryRepo = categoryRepo;
+        this.orderItemRepo = orderItemRepo;
+        this.productVariantRepo = productVariantRepo;
+        this.shippingAddressRepo = shippingAddressRepo;
+        this.wishlistRepo = wishlistRepo;
+        this.passwordEncoder = passwordEncoder;
     }
-
 
     @Override
     @Transactional
@@ -135,6 +135,7 @@ public class DataSeeder implements CommandLineRunner {
         if (shippingAddressRepo.count() == 0) seedShippingAddresses();
         if (cartItemRepo.count() == 0) seedCartItems();
         if (productReviewRepo.count() == 0) seedProductReviews();
+        if (wishlistRepo.count() == 0) seedWishlists();
         System.out.println("Tech e-commerce data seeding completed successfully!");
     }
 
@@ -173,23 +174,20 @@ public class DataSeeder implements CommandLineRunner {
                         .brand(brand)
                         .description(faker.lorem().sentence(10))
                         .isFeatured(random.nextBoolean() && i < 3)
-                        .basePrice(new BigDecimal(faker.commerce().price(50.00, 2500.00)).setScale(2, RoundingMode.HALF_UP))
+                        .basePrice(new BigDecimal(faker.commerce().price(50.00, 2500.00)
+                                .replaceAll("[^\\d.]", "")).setScale(2, RoundingMode.HALF_UP))
                         .totalStock(0)
                         .category(category);
 
                 // Step 3: Add category-specific attributes that are consistent with the brand
                 switch (categoryName) {
                     case "Smartphones":
-                        String cpu;
-                        if ("Apple".equals(brand)) {
-                            cpu = faker.options().option("A16 Bionic", "A17 Pro");
-                        } else if ("Google".equals(brand)) {
-                            cpu = faker.options().option("Tensor G2", "Tensor G3");
-                        } else if ("Samsung".equals(brand)) {
-                            cpu = faker.options().option("Exynos 2400", "Snapdragon 8 Gen 3 for Galaxy");
-                        } else {
-                            cpu = faker.options().option("Snapdragon 8 Gen 3", "Dimensity 9300");
-                        }
+                        String cpu = switch (brand) {
+                            case "Apple" -> faker.options().option("A16 Bionic", "A17 Pro");
+                            case "Google" -> faker.options().option("Tensor G2", "Tensor G3");
+                            case "Samsung" -> faker.options().option("Exynos 2400", "Snapdragon 8 Gen 3 for Galaxy");
+                            case null, default -> faker.options().option("Snapdragon 8 Gen 3", "Dimensity 9300");
+                        };
                         productBuilder.cpu(cpu)
                                 .memory(faker.options().option("32GB","64GB","128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"))
                                 .camera(faker.options().option("48MP", "50MP", "200MP"));
@@ -242,9 +240,44 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println(products.size() + " realistic products created.");
     }
 
-    // --- Other Seeding Methods (Unchanged) ---
-    // The rest of the methods are the same as in your original file.
-    // I am omitting them here for brevity, but they should remain in your class.
+    private void seedWishlists() {
+        if (wishlistRepo.count() > 0) return;
+        System.out.println("Seeding wishlists...");
+        List<User> users = userRepo.findAll();
+        List<Product> products = productRepo.findAll();
+        if (users.isEmpty() || products.isEmpty()) return;
+
+        List<Wishlist> wishlists = new ArrayList<>();
+        Random rand = new Random();
+
+        for (User user : users) {
+            int numWishlists = rand.nextInt(2) + 1; // 1-2 wishlists per user
+            for (int i = 0; i < numWishlists; i++) {
+                Wishlist wishlist = new Wishlist();
+                wishlist.setTitle("Wishlist " + (i + 1) + " of " + user.getUsername());
+                wishlist.setDescription("Auto-generated wishlist for " + user.getUsername());
+                wishlist.setImageUrl("https://via.placeholder.com/150");
+                wishlist.setProductUrl("https://example.com/product");
+                wishlist.setPrice("Varies");
+                wishlist.setCategory("Mixed");
+                wishlist.setUser(user);
+
+                // Add random products to wishlist
+                Set<Product> wishlistProducts = new HashSet<>();
+                int numProducts = rand.nextInt(5) + 1; // 1-5 products per wishlist
+                for (int j = 0; j < numProducts; j++) {
+                    wishlistProducts.add(products.get(rand.nextInt(products.size())));
+                }
+                wishlist.setProducts(wishlistProducts);
+
+                wishlists.add(wishlist);
+            }
+        }
+        wishlistRepo.saveAll(wishlists);
+        System.out.println(wishlists.size() + " wishlists created.");
+    }
+
+    // --- Other Seeding Methods ---
 
     private void seedUsers() {
         if (userRepo.count() > 0) return;

@@ -11,7 +11,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -43,12 +45,16 @@ public class Product {
     @Min(value = 0, message = "Total stock must be at least 0")
     private Integer totalStock;
 
+    // ========== RELATIONSHIPS ==========
+
+    // Product reviews
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductReview> productReviews = new ArrayList<>();
 
+    // Categories
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     @JsonBackReference
@@ -56,11 +62,18 @@ public class Product {
     @EqualsAndHashCode.Exclude
     private Category category;
 
+    // Product variants
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductVariant> productVariants = new ArrayList<>();
+
+    // Wishlists
+    @ManyToMany(mappedBy = "products")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Wishlist> wishlists = new HashSet<>();
 
     // ========== SMARTPHONES ATTRIBUTES ==========
     @Column(name = "screen_size")
