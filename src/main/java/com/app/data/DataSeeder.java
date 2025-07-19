@@ -169,13 +169,14 @@ public class DataSeeder implements CommandLineRunner {
                 // Step 2: Construct a meaningful product name.
                 String productName = "Gaming".equals(categoryName) ? nameTemplate : brand + " " + nameTemplate;
 
+                BigDecimal price = new BigDecimal(faker.commerce().price());
+
                 Product.ProductBuilder productBuilder = Product.builder()
                         .name(productName)
                         .brand(brand)
                         .description(faker.lorem().sentence(10))
                         .isFeatured(random.nextBoolean() && i < 3)
-                        .basePrice(new BigDecimal(faker.commerce().price(50.00, 2500.00)
-                                .replaceAll("[^\\d.]", "")).setScale(2, RoundingMode.HALF_UP))
+                        .basePrice(price)
                         .totalStock(0)
                         .category(category);
 
