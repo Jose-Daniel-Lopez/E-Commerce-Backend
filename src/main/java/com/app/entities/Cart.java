@@ -1,8 +1,7 @@
 package com.app.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -34,7 +33,7 @@ public class Cart {
     // One-to-One relationship with User (bidirectional)
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @JsonBackReference
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @NotNull(message = "User is required")
@@ -42,7 +41,6 @@ public class Cart {
 
     // One-to-Many relationship with CartItem (bidirectional)
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Size(max = 100, message = "Cart cannot have more than 100 items")

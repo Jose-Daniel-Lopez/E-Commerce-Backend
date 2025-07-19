@@ -1,6 +1,6 @@
 package com.app.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -49,7 +49,7 @@ public class Address {
     // Many-to-One relationship with User (bidirectional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private User user;

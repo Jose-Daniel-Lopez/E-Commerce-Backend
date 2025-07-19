@@ -1,6 +1,7 @@
 package com.app.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -28,9 +29,9 @@ public class CartItem {
     // Many-to-One relationship with Cart (bidirectional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @JsonBackReference
     @NotNull(message = "Cart is required")
     private Cart cart;
 

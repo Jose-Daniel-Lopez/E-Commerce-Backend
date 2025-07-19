@@ -1,6 +1,7 @@
 package com.app.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -44,7 +45,7 @@ public class DiscountCode {
 
     // One-to-Many relationship with Order (bidirectional)
     @OneToMany(mappedBy = "discountCode")
-    @JsonBackReference
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Order> orders;

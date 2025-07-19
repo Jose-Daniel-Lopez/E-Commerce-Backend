@@ -1,8 +1,7 @@
 package com.app.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -49,7 +48,7 @@ public class Product {
 
     // Product reviews
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductReview> productReviews = new ArrayList<>();
@@ -57,20 +56,19 @@ public class Product {
     // Categories
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
-    @JsonBackReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Category category;
 
     // Product variants
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductVariant> productVariants = new ArrayList<>();
 
     // Wishlists
     @ManyToMany(mappedBy = "products")
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Wishlist> wishlists = new HashSet<>();

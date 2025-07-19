@@ -1,15 +1,23 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "wishlist")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Wishlist {
 
     // UNIQUE ENTITY FIELDS //
@@ -22,7 +30,7 @@ public class Wishlist {
     private String title;
 
     @NotNull(message = "Description cannot be null")
-    @Size(max = 1000, message = "Description cannot exceed 500 characters")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     private String description;
 
     @NotNull(message = "Image URL cannot be null")
@@ -41,10 +49,12 @@ public class Wishlist {
     @Size(max = 50, message = "Category cannot exceed 50 characters")
     private String category;
 
-
     // RELATIONSHIPS //
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
     @ManyToMany
@@ -53,5 +63,21 @@ public class Wishlist {
             joinColumns = @JoinColumn(name = "wishlist_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private Set<Product> products;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private Set<Product> products = new HashSet<>();
+
+    @Override
+    public String toString() {
+        return "Wishlist{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", category='" + category + '\'' +
+                ", price='" + price + '\'' +
+                ", userId=" + (user != null ? user.getId() : null) +
+                ", productCount=" + (products != null ? products.size() : 0) +
+                '}';
+    }
 }
