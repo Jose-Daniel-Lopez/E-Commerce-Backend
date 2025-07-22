@@ -9,7 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = {"user"})
 @Builder
 @Entity
 @Table(name = "shipping_addresses")
@@ -19,6 +19,14 @@ public class ShippingAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Title cannot be blank")
+    @Column(nullable = false)
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AddressType addressType;
 
     @NotBlank(message = "Street cannot be blank")
     private String street;
@@ -35,7 +43,13 @@ public class ShippingAddress {
     @NotBlank(message = "Country cannot be blank")
     private String country;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public enum AddressType {
+        HOME,
+        OFFICE,
+        PICKUP
+    }
 }

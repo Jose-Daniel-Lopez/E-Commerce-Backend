@@ -21,47 +21,31 @@ import java.util.stream.IntStream;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    // --- Configuration for Data Load ---
     private static final int NUM_USERS = 50;
     private static final int NUM_PRODUCTS_PER_CATEGORY = 15;
     private static final int NUM_ORDERS = 50;
     private static final int NUM_DISCOUNT_CODES = 10;
     private static final int NUM_REVIEWS = 70;
 
-    // --- NEW: Structured Maps for Realistic Data Generation ---
-
-    // Map to associate categories with a list of relevant brands.
-    // This is the core change to ensure brands make sense for each product type.
     private static final Map<String, List<String>> CATEGORY_BRANDS = createCategoryBrandsMap();
-
-    // Map for product name templates, which was already well-structured.
     private static final Map<String, List<String>> PRODUCT_NAMES = createProductNamesMap();
 
     private static Map<String, List<String>> createCategoryBrandsMap() {
         Map<String, List<String>> map = new HashMap<>();
-        // Brands for Smartphones
         map.put("Smartphones", Arrays.asList("Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "Motorola", "Oppo", "Realme", "Asus", "Nokia"));
-        // Brands for Computers
         map.put("Computers", Arrays.asList("Apple", "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Asus", "Alienware"));
-        // Brands for Tablets
         map.put("Tablets", Arrays.asList("Apple", "Samsung", "Microsoft", "Lenovo", "Xiaomi", "Huawei"));
-        // Brands for Smartwatches
         map.put("Smartwatches", Arrays.asList("Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "Asus"));
-        // Brands for Headphones
         map.put("Headphones", Arrays.asList("Apple", "Samsung", "Sony", "Logitech", "Corsair", "SteelSeries", "HyperX", "Razer"));
-        // Brands for Peripherals
+
         List<String> peripheralBrands = Arrays.asList("Logitech", "Corsair", "Razer", "SteelSeries", "HyperX", "Asus", "Dell", "HP", "Lenovo", "Microsoft");
         map.put("Keyboards", peripheralBrands);
         map.put("Mice", peripheralBrands);
-        // Brands for Cameras (limited to tech brands focusing on webcams/action cams)
+
         map.put("Cameras", Arrays.asList("Sony", "Logitech", "Razer"));
-        // Brands for Audio
         map.put("Audio", Arrays.asList("Apple", "Google", "Sony", "LG", "Samsung", "Logitech", "Razer"));
-        // For Gaming, the "brand" will be the platform owner
         map.put("Gaming", Arrays.asList("Sony", "Microsoft"));
-        // Brands for Smart Home
         map.put("Smart Home", Arrays.asList("Google", "Apple", "Samsung", "Xiaomi", "LG", "TCL"));
-        // For Accessories, we can allow a wider range of brands
         map.put("Accessories", Arrays.asList("Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "LG", "Motorola", "Oppo", "Vivo", "Realme", "Honor", "Nothing", "Asus", "Nokia", "TCL", "Fairphone", "RedMagic", "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Logitech", "Corsair", "SteelSeries", "HyperX", "Alienware"));
         return map;
     }
@@ -503,21 +487,44 @@ public class DataSeeder implements CommandLineRunner {
     private void seedShippingAddresses() {
         if (shippingAddressRepo.count() > 0) return;
         System.out.println("Seeding shipping addresses...");
-        List<Order> orders = orderRepo.findAll();
-        if (orders.isEmpty()) return;
+        List<User> users = userRepo.findAll();
+        if (users.isEmpty()) return;
 
-        List<ShippingAddress> addresses = orders.stream()
-                .map(order -> ShippingAddress.builder()
+        List<ShippingAddress> addresses = new ArrayList<>();
+        Random rand = new Random();
+
+        for (User user : users) {
+            // Each user gets 1-3 shipping addresses
+            int addressCount = rand.nextInt(3) + 1;
+            for (int i = 0; i < addressCount; i++) {
+                ShippingAddress address = ShippingAddress.builder()
+                        .title(generateRandomTitle())
+                        .addressType(getRandomAddressType())
                         .street(faker.address().streetAddress())
                         .city(faker.address().city())
                         .state(faker.address().state())
                         .zipCode(faker.address().zipCode())
-                        .country("España")
-                        .order(order)
-                        .build())
-                .collect(Collectors.toList());
+                        .country("United States")
+                        .user(user)
+                        .build();
+                addresses.add(address);
+            }
+        }
         shippingAddressRepo.saveAll(addresses);
-        System.out.println(addresses.size() + " shipping addresses created.");
+        System.out.println(addresses.size() + " shipping addresses created for users.");
+    }
+
+    private String generateRandomTitle() {
+        String[] places = {"City", "Downtown", "Uptown", "Riverside", "Mountain", "Beach", "Park", "Center"};
+        String[] types = {"Flat", "Apartment", "House", "Office", "Studio", "Loft", "Building", "Complex"};
+
+        return places[faker.number().numberBetween(0, places.length)] + " " +
+                types[faker.number().numberBetween(0, types.length)];
+    }
+
+    private ShippingAddress.AddressType getRandomAddressType() {
+        ShippingAddress.AddressType[] types = ShippingAddress.AddressType.values();
+        return types[faker.number().numberBetween(0, types.length)];
     }
 
     private void seedCartItems() {
