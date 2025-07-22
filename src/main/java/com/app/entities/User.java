@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -45,6 +46,7 @@ public class User implements UserDetails {
     @NotBlank(message = "Password cannot be blank")
     private String password;
 
+    @Size(max = 255, message = "Avatar URL cannot exceed 255 characters")
     private String avatar;
 
     @Enumerated(EnumType.STRING)
