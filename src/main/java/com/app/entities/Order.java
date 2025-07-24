@@ -76,7 +76,9 @@ public class Order {
         PAID,
         SHIPPED,
         DELIVERED,
-        CANCELED
+        CANCELED,
+        RETURNED,
+        REFUNDED
     }
 
     @Transient

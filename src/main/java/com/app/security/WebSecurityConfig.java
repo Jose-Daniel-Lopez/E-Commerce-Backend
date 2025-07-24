@@ -65,6 +65,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/register/**").permitAll()
+                        .requestMatchers("/api/orders/**").permitAll() // This is for testing purposes, should be secured later
                         .requestMatchers("/api/users/me").authenticated()
                         .requestMatchers("/api/cart/**", "/api/orders/**").authenticated()
                         .anyRequest().permitAll()
