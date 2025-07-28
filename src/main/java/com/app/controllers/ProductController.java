@@ -1,5 +1,6 @@
 package com.app.controllers;
 
+import com.app.DTO.NewlyAddedProductDTO;
 import com.app.entities.Product;
 import com.app.hateoas.ProductRepresentation;
 import com.app.hateoas.HateoasLinkBuilder;
@@ -61,5 +62,12 @@ public class ProductController {
     @GetMapping("/memories")
     public List<String> getAllMemoryOptions() {
         return productService.getAllMemoryOptions();
+    }
+
+    @GetMapping("/new")
+    public List<NewlyAddedProductDTO> getNewlyCreatedProducts() {
+        return productService.getNewlyCreatedProducts().stream()
+                .map(p -> new NewlyAddedProductDTO(p.getImageUrl(), p.getName(), p.getBasePrice()))
+                .toList();
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,5 +49,12 @@ public class ProductService {
     // Return all memory options
     public List<String> getAllMemoryOptions() {
         return MEMORY_OPTIONS;
+    }
+
+    // Get products added in the last 7 days
+    public List<Product> getNewlyCreatedProducts() {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(7);
+        return productRepo.findNewlyCreatedBetween(startDate, endDate);
     }
 }

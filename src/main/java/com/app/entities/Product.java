@@ -6,9 +6,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,9 +37,16 @@ public class Product {
     @NotBlank(message = "Product brand cannot be blank")
     private String brand;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt; // LocalDateTime.now(); -> Set to LocalDateTime.now() once testing is complete
+
     @Column(name = "is_featured", nullable = false)
     @Builder.Default
     private Boolean isFeatured = false;
+
+    @Size(max = 255, message = "Image URL cannot exceed 255 characters")
+    @Column(name = "image_url")
+    private String imageUrl;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Base price must be at least 0")
     private BigDecimal basePrice;

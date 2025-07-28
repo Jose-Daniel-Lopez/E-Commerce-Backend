@@ -11,9 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -163,6 +166,7 @@ public class DataSeeder implements CommandLineRunner {
                         .name(productName)
                         .brand(brand)
                         .description(faker.lorem().sentence(10))
+                        .createdAt(randomCreatedAt(random))
                         .isFeatured(random.nextBoolean() && i < 3)
                         .basePrice(price)
                         .totalStock(0)
@@ -227,6 +231,15 @@ public class DataSeeder implements CommandLineRunner {
         }
         productRepo.saveAll(products);
         System.out.println(products.size() + " realistic products created.");
+    }
+
+    private LocalDateTime randomCreatedAt(Random random) {
+        LocalDate startDate = LocalDate.now().minusDays(30);
+        long startEpochDay = startDate.toEpochDay();
+        long endEpochDay = LocalDate.now().toEpochDay();
+        long randomDay = ThreadLocalRandom.current().longs(startEpochDay, endEpochDay + 1).findAny().orElse(startEpochDay);
+        return LocalDateTime.of(LocalDate.ofEpochDay(randomDay), LocalTime.MIN)
+                .plusMinutes(random.nextInt(1440)); // Add random time within the day
     }
 
     private void seedWishlists() {
