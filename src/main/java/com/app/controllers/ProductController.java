@@ -1,6 +1,7 @@
 package com.app.controllers;
 
 import com.app.DTO.NewlyAddedProductDTO;
+import com.app.DTO.ProductByCategorySummaryDTO;
 import com.app.entities.Product;
 import com.app.hateoas.ProductRepresentation;
 import com.app.hateoas.HateoasLinkBuilder;
@@ -69,5 +70,10 @@ public class ProductController {
         return productService.getNewlyCreatedProducts().stream()
                 .map(p -> new NewlyAddedProductDTO(p.getImageUrl(), p.getName(), p.getBasePrice()))
                 .toList();
+    }
+
+    @GetMapping("/category")
+    public List<ProductByCategorySummaryDTO> getProductSummariesByCategory(@RequestParam String name) {
+        return productService.getProductSummariesByCategory(name);
     }
 }

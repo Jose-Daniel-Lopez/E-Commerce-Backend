@@ -1,5 +1,6 @@
 package com.app.services;
 
+import com.app.DTO.ProductByCategorySummaryDTO;
 import com.app.entities.Product;
 import com.app.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,5 +57,9 @@ public class ProductService {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusDays(7);
         return productRepo.findNewlyCreatedBetween(startDate, endDate);
+    }
+
+    public List<ProductByCategorySummaryDTO> getProductSummariesByCategory(String categoryName) {
+        return productRepo.findSummaryByCategoryName(categoryName);
     }
 }
