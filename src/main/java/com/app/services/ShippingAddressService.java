@@ -16,8 +16,28 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Service class for managing shipping addresses.
- * Handles CRUD operations and business logic for user shipping addresses.
+ * Service class for managing {@link ShippingAddress} entities and their relationships.
+ * <p>
+ * This service handles all business logic related to user shipping addresses, including:
+ * </p>
+ * <ul>
+ *   <li>Creating, updating, and deleting addresses</li>
+ *   <li>Validating ownership and usage constraints</li>
+ *   <li>Assigning addresses to orders with cross-entity validation</li>
+ *   <li>Supporting queries by user, type, or default selection</li>
+ *   <li>Preventing deletion of in-use addresses</li>
+ * </ul>
+ * <p>
+ * Ensures data integrity by enforcing that:
+ * </p>
+ * <ul>
+ *   <li>Only existing users can own addresses</li>
+ *   <li>An address must belong to the same user as the order it's assigned to</li>
+ *   <li>Addresses in active orders cannot be deleted</li>
+ * </ul>
+ * <p>
+ * Uses declarative transactions: write operations are transactional, read-only methods are optimized.
+ * </p>
  */
 @Service
 @Transactional
@@ -32,12 +52,14 @@ public class ShippingAddressService {
     @Autowired
     private OrderRepository orderRepository;
 
+    // === Address Creation & Management ===
+
     /**
      * Creates a new shipping address for a user.
      *
-     * @param dto the shipping address data transfer object
-     * @return the created shipping address
-     * @throws EntityNotFoundException if the user is not found
+     * @param dto the data transfer object containing address details and user ID
+     * @return the saved {@link ShippingAddress}
+     * @throws EntityNotFoundException if the specified user does not exist
      */
     public ShippingAddress createShippingAddress(ShippingAddressDTO dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -60,54 +82,10 @@ public class ShippingAddressService {
     }
 
     /**
-     * Retrieves all shipping addresses in the system.
+     * Updates an existing shipping address with new details.
      *
-     * @return list of all shipping addresses
-     */
-    @Transactional(readOnly = true)
-    public List<ShippingAddress> findAll() {
-        return shippingAddressRepository.findAll();
-    }
-
-    /**
-     * Finds a shipping address by its ID.
-     *
-     * @param id the address ID
-     * @return optional containing the address if found
-     */
-    @Transactional(readOnly = true)
-    public Optional<ShippingAddress> findById(Long id) {
-        return shippingAddressRepository.findById(id);
-    }
-
-    /**
-     * Retrieves all shipping addresses for a specific user.
-     *
-     * @param userId the user ID
-     * @return list of addresses belonging to the user
-     */
-    @Transactional(readOnly = true)
-    public List<ShippingAddress> findByUserId(Long userId) {
-        return shippingAddressRepository.findByUserId(userId);
-    }
-
-    /**
-     * Finds addresses for a user filtered by address type.
-     *
-     * @param userId the user ID
-     * @param type   the address type (HOME, OFFICE, PICKUP)
-     * @return list of addresses matching the criteria
-     */
-    @Transactional(readOnly = true)
-    public List<ShippingAddress> findByUserIdAndType(Long userId, ShippingAddress.AddressType type) {
-        return shippingAddressRepository.findByUserIdAndAddressType(userId, type);
-    }
-
-    /**
-     * Updates an existing shipping address.
-     *
-     * @param dto the updated address data
-     * @return the updated shipping address
+     * @param dto the DTO containing updated address data and ID
+     * @return the updated {@link ShippingAddress}
      * @throws EntityNotFoundException if the address or new user is not found
      */
     public ShippingAddress updateShippingAddress(ShippingAddressDTO dto) {
@@ -138,13 +116,123 @@ public class ShippingAddressService {
     }
 
     /**
-     * Assigns a shipping address to an order.
-     * Validates that the address belongs to the same user as the order.
+     * Deletes a shipping address if it is not currently assigned to any order.
      *
-     * @param orderId   the order ID
-     * @param addressId the address ID
-     * @throws EntityNotFoundException    if order or address is not found
-     * @throws IllegalArgumentException if address doesn't belong to order's user
+     * @param id the ID of the address to delete
+     * @throws EntityNotFoundException if the address does not exist
+     * @throws IllegalStateException   if the address is used by one or more orders
+     */
+    public void deleteById(Long id) {
+        ShippingAddress address = shippingAddressRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Shipping address not found with id: " + id
+                ));
+
+        // Prevent deletion if address is in use
+        List<Order> ordersUsingAddress = orderRepository.findByShippingAddressId(id);
+        if (!ordersUsingAddress.isEmpty()) {
+            throw new IllegalStateException(
+                    "Cannot delete address as it is being used by " + ordersUsingAddress.size() + " order(s)"
+            );
+        }
+
+        shippingAddressRepository.delete(address);
+    }
+
+    // === Retrieval & Query Methods ===
+
+    /**
+     * Retrieves all shipping addresses in the system.
+     * <p>
+     * Use cautiously in production — may return large datasets.
+     * </p>
+     *
+     * @return a list of all {@link ShippingAddress} entities
+     */
+    @Transactional(readOnly = true)
+    public List<ShippingAddress> findAll() {
+        return shippingAddressRepository.findAll();
+    }
+
+    /**
+     * Retrieves a shipping address by its ID.
+     *
+     * @param id the unique identifier
+     * @return an {@link Optional} containing the address if found
+     */
+    @Transactional(readOnly = true)
+    public Optional<ShippingAddress> findById(Long id) {
+        return shippingAddressRepository.findById(id);
+    }
+
+    /**
+     * Retrieves all shipping addresses associated with a specific user.
+     *
+     * @param userId the ID of the user
+     * @return a list of addresses belonging to the user
+     */
+    @Transactional(readOnly = true)
+    public List<ShippingAddress> findByUserId(Long userId) {
+        return shippingAddressRepository.findByUserId(userId);
+    }
+
+    /**
+     * Retrieves addresses for a user filtered by address type (e.g., HOME, OFFICE).
+     *
+     * @param userId the ID of the user
+     * @param type   the {@link ShippingAddress.AddressType} to filter by
+     * @return a list of matching addresses
+     */
+    @Transactional(readOnly = true)
+    public List<ShippingAddress> findByUserIdAndType(Long userId, ShippingAddress.AddressType type) {
+        return shippingAddressRepository.findByUserIdAndAddressType(userId, type);
+    }
+
+    /**
+     * Retrieves the first (oldest) address for a user, useful as a default during checkout.
+     *
+     * @param userId the ID of the user
+     * @return an {@link Optional} containing the first address, if any exist
+     */
+    @Transactional(readOnly = true)
+    public Optional<ShippingAddress> getUserDefaultAddress(Long userId) {
+        return shippingAddressRepository.findFirstByUserId(userId);
+    }
+
+    /**
+     * Checks whether a user has any saved shipping addresses.
+     *
+     * @param userId the ID of the user
+     * @return {@code true} if at least one address exists; {@code false} otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean userHasAddresses(Long userId) {
+        return shippingAddressRepository.existsByUserId(userId);
+    }
+
+    /**
+     * Counts the number of shipping addresses a user has.
+     *
+     * @param userId the ID of the user
+     * @return the total count of addresses
+     */
+    @Transactional(readOnly = true)
+    public long countUserAddresses(Long userId) {
+        return shippingAddressRepository.countByUserId(userId);
+    }
+
+    // === Order Integration Methods ===
+
+    /**
+     * Assigns a shipping address to an order after validating ownership.
+     * <p>
+     * Ensures the address belongs to the same user as the order.
+     * </p>
+     *
+     * @param orderId   the ID of the order
+     * @param addressId the ID of the address to assign
+     * @throws EntityNotFoundException if the order or address is not found
+     * @throws IllegalArgumentException  if the address does not belong to the order’s user
      */
     public void assignAddressToOrder(Long orderId, Long addressId) {
         Order order = orderRepository.findById(orderId)
@@ -157,7 +245,7 @@ public class ShippingAddressService {
                         "Shipping address not found with id: " + addressId
                 ));
 
-        // Validate ownership
+        // Enforce ownership
         if (!address.getUser().getId().equals(order.getUser().getId())) {
             throw new IllegalArgumentException(
                     "Address does not belong to the order's user"
@@ -169,11 +257,11 @@ public class ShippingAddressService {
     }
 
     /**
-     * Retrieves the shipping address associated with an order.
+     * Retrieves the shipping address currently assigned to an order.
      *
-     * @param orderId the order ID
-     * @return optional containing the shipping address if assigned
-     * @throws EntityNotFoundException if the order is not found
+     * @param orderId the ID of the order
+     * @return an {@link Optional} containing the address if assigned
+     * @throws EntityNotFoundException if the order does not exist
      */
     @Transactional(readOnly = true)
     public Optional<ShippingAddress> getOrderShippingAddress(Long orderId) {
@@ -183,64 +271,5 @@ public class ShippingAddressService {
                 ));
 
         return Optional.ofNullable(order.getShippingAddress());
-    }
-
-    /**
-     * Deletes a shipping address by ID.
-     * Prevents deletion if the address is currently used by any orders.
-     *
-     * @param id the address ID
-     * @throws EntityNotFoundException if the address is not found
-     * @throws IllegalStateException   if the address is used by existing orders
-     */
-    public void deleteById(Long id) {
-        ShippingAddress address = shippingAddressRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Shipping address not found with id: " + id
-                ));
-
-        // Check if address is in use
-        List<Order> ordersUsingAddress = orderRepository.findByShippingAddressId(id);
-        if (!ordersUsingAddress.isEmpty()) {
-            throw new IllegalStateException(
-                    "Cannot delete address as it is being used by " + ordersUsingAddress.size() + " order(s)"
-            );
-        }
-
-        shippingAddressRepository.delete(address);
-    }
-
-    /**
-     * Checks if a user has any shipping addresses.
-     *
-     * @param userId the user ID
-     * @return true if user has addresses, false otherwise
-     */
-    @Transactional(readOnly = true)
-    public boolean userHasAddresses(Long userId) {
-        return shippingAddressRepository.existsByUserId(userId);
-    }
-
-    /**
-     * Counts the number of addresses for a user.
-     *
-     * @param userId the user ID
-     * @return the count of user's addresses
-     */
-    @Transactional(readOnly = true)
-    public long countUserAddresses(Long userId) {
-        return shippingAddressRepository.countByUserId(userId);
-    }
-
-    /**
-     * Retrieves the first/default address for a user.
-     * Useful for auto-selecting an address during checkout.
-     *
-     * @param userId the user ID
-     * @return optional containing the first address if any exist
-     */
-    @Transactional(readOnly = true)
-    public Optional<ShippingAddress> getUserDefaultAddress(Long userId) {
-        return shippingAddressRepository.findFirstByUserId(userId);
     }
 }

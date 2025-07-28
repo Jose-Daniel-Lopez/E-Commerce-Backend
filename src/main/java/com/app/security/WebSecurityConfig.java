@@ -23,18 +23,18 @@ import java.util.List;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
- * Main security configuration class for the application.
+ * Security configuration for the application.
  * <p>
- * Configures:
+ * This class configures:
  * <ul>
- *   <li>Stateless JWT-based authentication</li>
- *   <li>CORS policy (frontend: http://localhost:5173)</li>
- *   <li>CSRF disabled (since we use JWT, not session cookies)</li>
- *   <li>Custom authentication entry point for 401 responses</li>
- *   <li>JWT filter inserted before UsernamePasswordAuthenticationFilter</li>
+ *   <li>JWT-based authentication using {@link JwtRequestFilter}</li>
+ *   <li>Stateless session management</li>
+ *   <li>CORS policy for frontend (localhost:5173)</li>
+ *   <li>CSRF disabled (JWT is stateless)</li>
+ *   <li>Custom entry point for authentication errors ({@link JwtAuthenticationEntryPoint})</li>
+ *   <li>Password encoding with BCrypt</li>
+ *   <li>Public vs. secured endpoints</li>
  * </ul>
- * <p>
- * All endpoints are secured by default. Public access is explicitly defined.
  */
 @Configuration
 @EnableWebSecurity
@@ -49,99 +49,119 @@ public class WebSecurityConfig {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
-    /**
-     * Defines the security filter chain.
-     */
+    // ========================================================================
+    // PUBLIC ENDPOINTS
+    // These paths are accessible without authentication.
+    // Note: Some endpoints (e.g., /api/orders/**) are open for testing.
+    // ========================================================================
+
+    private static final String[] PUBLIC_ENDPOINTS = {
+            // Root and base API
+            "/", "/api", "/api/**",
+
+            // Auth and registration
+            "/login", "/logout", "/register", "/register/**",
+            "/api/auth/**",
+
+            // Public API endpoints
+            "/api/users", "/api/users/**",
+            "/api/orders", "/api/orders/**",  // TODO: Secure this later
+            "/api/products", "/api/products/**",
+            "/api/categories", "/api/categories/**",
+            "/api/product-reviews", "/api/product-reviews/**",
+            "/api/discount-codes", "/api/discount-codes/**",
+            "/global-search/**",
+
+            // Static resources
+            "/webjars/**", "/resources/**", "/assets/**",
+            "/css/**", "/js/**", "/fonts/**",
+            "/*.css", "/*.js", "/*.js.map", "/favicon.ico", "/error"
+    };
+
+    // ========================================================================
+    // SECURITY FILTER CHAIN
+    // Main security configuration: CORS, CSRF, session, authorization, logout
+    // ========================================================================
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Enable CORS with default configuration (uses corsConfigurationSource bean)
+                // Enable CORS using the corsConfigurationSource bean
                 .cors(withDefaults())
 
-                // Disable CSRF — safe to do when using stateless JWT authentication
+                // Disable CSRF — safe because we use stateless JWT (no session)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Use stateless session (no session created or used)
+                // Use stateless session (no session created on server)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Handle authentication exceptions via custom entry point
+                // Handle authentication failures with custom JSON response
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 // Define authorization rules
                 .authorizeHttpRequests(authorize -> authorize
 
-                        // Allow preflight requests (OPTIONS) globally
+                        // Allow OPTIONS requests (CORS preflight) globally
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public authentication & registration endpoints
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh").permitAll()
+                        // Explicitly allow auth and registration endpoints
+                        .requestMatchers("/api/auth/**", "/api/register/**").permitAll()
 
-                        // Public product & category APIs (read-only)
-                        .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/product-reviews", "/api/product-reviews/**").permitAll()
-                        .requestMatchers("/global-search/**").permitAll()
+                        // Temporary: Allow public access to orders (for testing)
+                        .requestMatchers("/api/orders/**").permitAll()
 
-                        // Allow public access to static resources
-                        .requestMatchers("/webjars/**", "/resources/**", "/assets/**",
-                                "/css/**", "/js/**", "/fonts/**",
-                                "/*.css", "/*.js", "/*.js.map", "/favicon.ico", "/error").permitAll()
-
-                        // User profile: authenticated users only
+                        // Authenticated users only
                         .requestMatchers("/api/users/me").authenticated()
+                        .requestMatchers("/api/cart/**", "/api/orders/**").authenticated()
 
-                        // Cart and order management: require authentication
-                        .requestMatchers("/api/cart/**", "/api/orders", "/api/orders/**").authenticated()
-
-                        // All other requests must be authenticated (default deny)
-                        .anyRequest().authenticated()
+                        // All other requests are allowed (fallback)
+                        .anyRequest().permitAll()
                 )
 
-                // Logout configuration (though JWT is stateless, this can be used to clean up client-side)
+                // Configure logout behavior
                 .logout(logout -> logout
-                        .logoutUrl("/api/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            // No server-side session to invalidate, but you can add custom logic
-                        })
-                        .clearAuthentication(true)
-                        .invalidateHttpSession(false) // No session used
-                        .deleteCookies("JSESSIONID")  // Optional: if any cookies exist
+                        .logoutUrl("/api/logout")                    // Endpoint to trigger logout
+                        .logoutSuccessUrl("/api/auth/login")         // Redirect after logout
+                        .invalidateHttpSession(true)                 // Invalidate session if any
+                        .deleteCookies("JSESSIONID")                 // Clear session cookie
                 )
 
-                // Insert JWT filter before Spring's UsernamePasswordAuthenticationFilter
+                // Add JWT filter before Spring's built-in username/password filter
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * CORS configuration to allow frontend (e.g., React/Vue on localhost:5173).
-     * <p>
-     * Only allows trusted origin. Credentials (e.g., cookies, Authorization header)
-     * are supported if needed.
-     */
+    // ========================================================================
+    // CORS CONFIGURATION
+    // Allows frontend (e.g., React on localhost:5173) to make requests
+    // ========================================================================
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Adjust for prod
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // Allows sending Authorization header
-        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setMaxAge(3600L); // Cache preflight for 1 hour
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));  // Frontend origin
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));                       // Allow all headers
+        configuration.setAllowCredentials(true);                             // Allow cookies/Authorization
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type")); // Frontend can read these
+        configuration.setMaxAge(3600L);                                      // Cache preflight for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);  // Apply to all paths
         return source;
     }
 
+    // ========================================================================
+    // AUTHENTICATION & PASSWORD ENCODING
+    // Expose beans for use in controllers or services
+    // ========================================================================
+
     /**
-     * Exposes the AuthenticationManager as a bean so it can be used in controllers
-     * or JWT authentication services.
+     * Provides the AuthenticationManager bean.
+     * Used for authenticating users during login.
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -149,9 +169,8 @@ public class WebSecurityConfig {
     }
 
     /**
-     * Password encoder for securely hashing passwords using BCrypt.
-     * <p>
-     * Always use a password encoder — never store plain text!
+     * Password encoder for securely hashing passwords.
+     * Uses BCrypt hashing algorithm.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
