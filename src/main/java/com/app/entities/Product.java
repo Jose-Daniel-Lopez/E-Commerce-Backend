@@ -3,10 +3,7 @@ package com.app.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -73,6 +70,18 @@ public class Product {
      */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    /**
+     * Value indicating the product rating.
+     * Must be between 0.0 and 5.0, inclusive.
+     * Used for sorting and filtering products by quality.
+     * Defaults to 0.0 if not explicitly set.
+     */
+    @Column(name = "rating", nullable = false)
+    @Builder.Default
+    @DecimalMin(value = "0.0", inclusive = true, message = "Rating must be at least 0.0")
+    @DecimalMax(value = "5.0", inclusive = true, message = "Rating must be at most 5.0")
+    private Double rating = 0.0;
 
     /**
      * Flag indicating whether the product is featured on the homepage or promotions.

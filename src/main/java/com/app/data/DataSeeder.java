@@ -167,6 +167,7 @@ public class DataSeeder implements CommandLineRunner {
                         .brand(brand)
                         .description(faker.lorem().sentence(10))
                         .createdAt(randomCreatedAt(random))
+                        .rating(faker.number().randomDouble(1, 0, 5))
                         .isFeatured(random.nextBoolean() && i < 3)
                         .basePrice(price)
                         .totalStock(0)
