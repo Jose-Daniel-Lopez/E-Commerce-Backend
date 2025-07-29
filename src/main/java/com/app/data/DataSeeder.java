@@ -664,54 +664,412 @@ public class DataSeeder implements CommandLineRunner {
                 .plusMinutes(random.nextInt(1440));
     }
 
+    /**
+     * Seeds product variants with realistic options based on product category.
+     * Creates category-appropriate variants:
+     * - Smartphones/Tablets: Storage and color options
+     * - Laptops: RAM/Storage configurations and colors
+     * - Keyboards/Mice: Switch types, colors, and connectivity
+     * - Controllers: Colors and special editions
+     * - Handhelds: Storage options and colors
+     */
     private void seedProductVariants() {
         if (productVariantRepo.count() > 0) return;
-        System.out.println("Seeding product variants...");
+        System.out.println("Seeding realistic product variants based on categories...");
         List<Product> products = productRepo.findAll();
         if (products.isEmpty()) {
             System.out.println("No products found. Skipping variant seeding.");
             return;
         }
+
         List<ProductVariant> variants = new ArrayList<>();
         for (Product product : products) {
-            int variantCount = random.nextInt(4) + 1;
-            int totalStockForProduct = 0;
-            for (int i = 0; i < variantCount; i++) {
-                int stock = random.nextInt(100) + 10;
-                totalStockForProduct += stock;
+            String categoryName = product.getCategory().getName();
+            List<ProductVariant> productVariants = createVariantsForCategory(product, categoryName);
+            variants.addAll(productVariants);
+
+            // Calculate total stock for the product
+            int totalStockForProduct = productVariants.stream()
+                    .mapToInt(ProductVariant::getStock)
+                    .sum();
+            product.setTotalStock(totalStockForProduct);
+        }
+
+        productRepo.saveAll(products);
+        productVariantRepo.saveAll(variants);
+        System.out.println(variants.size() + " realistic product variants created.");
+    }
+
+    /**
+     * Creates appropriate variants for a product based on its category.
+     */
+    private List<ProductVariant> createVariantsForCategory(Product product, String categoryName) {
+        List<ProductVariant> variants = new ArrayList<>();
+        String brand = product.getBrand();
+
+        switch (categoryName) {
+            case "Smartphones":
+                variants.addAll(createSmartphoneVariants(product, brand));
+                break;
+            case "Tablets":
+                variants.addAll(createTabletVariants(product, brand));
+                break;
+            case "Laptops":
+                variants.addAll(createLaptopVariants(product, brand));
+                break;
+            case "Handhelds":
+                variants.addAll(createHandheldVariants(product, brand));
+                break;
+            case "Keyboards":
+                variants.addAll(createKeyboardVariants(product, brand));
+                break;
+            case "Mice":
+                variants.addAll(createMouseVariants(product, brand));
+                break;
+            case "Controllers":
+                variants.addAll(createControllerVariants(product, brand));
+                break;
+            default:
+                // Fallback for any other categories
+                variants.addAll(createGenericVariants(product));
+                break;
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createSmartphoneVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Storage options based on brand
+        List<String> storageOptions;
+        if ("Apple".equals(brand)) {
+            storageOptions = Arrays.asList("128GB", "256GB", "512GB", "1TB");
+        } else {
+            storageOptions = Arrays.asList("128GB", "256GB", "512GB");
+        }
+
+        // Restricted smartphone colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        // Create variants for each storage-color combination
+        for (String storage : storageOptions) {
+            // Not all colors available for all storage options (realistic)
+            int colorCount = Math.min(random.nextInt(4) + 2, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(50) + 5; // Lower stock for phones
                 variants.add(ProductVariant.builder()
-                        .size(faker.options().option("S", "M", "L", "XL", "Talla Única"))
-                        .color(faker.color().name())
+                        .size(storage) // Using size field for storage
+                        .color(color)
                         .stock(stock)
-                        .sku(generateSKU(product.getName()))
+                        .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
                         .product(product)
                         .build());
             }
-            product.setTotalStock(totalStockForProduct);
         }
-        productRepo.saveAll(products);
-        productVariantRepo.saveAll(variants);
-        System.out.println(variants.size() + " product variants created.");
+
+        return variants;
     }
 
-    private String generateSKU(String productName) {
-        String prefix = productName.substring(0, Math.min(3, productName.length())).toUpperCase();
-        return String.format("%s-%04d-%03d", prefix, random.nextInt(10000), random.nextInt(1000));
+    private List<ProductVariant> createTabletVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Storage options for tablets
+        List<String> storageOptions;
+        if ("Apple".equals(brand)) {
+            storageOptions = Arrays.asList("64GB", "256GB", "512GB", "1TB", "2TB");
+        } else if ("Microsoft".equals(brand)) {
+            storageOptions = Arrays.asList("128GB", "256GB", "512GB", "1TB");
+        } else {
+            storageOptions = Arrays.asList("64GB", "128GB", "256GB", "512GB");
+        }
+
+        // Restricted tablet colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        for (String storage : storageOptions) {
+            int colorCount = Math.min(random.nextInt(3) + 2, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(30) + 8;
+                variants.add(ProductVariant.builder()
+                        .size(storage)
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createLaptopVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // RAM/Storage configurations
+        List<String> configurations;
+        if ("Apple".equals(brand)) {
+            configurations = Arrays.asList(
+                "8GB/256GB", "8GB/512GB", "16GB/512GB", "16GB/1TB", "32GB/1TB", "32GB/2TB"
+            );
+        } else {
+            configurations = Arrays.asList(
+                "8GB/256GB", "16GB/512GB", "16GB/1TB", "32GB/512GB", "32GB/1TB"
+            );
+        }
+
+        // Restricted laptop colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        for (String config : configurations) {
+            int colorCount = Math.min(random.nextInt(3) + 1, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(20) + 3; // Lower stock for laptops
+                variants.add(ProductVariant.builder()
+                        .size(config) // Using size field for RAM/Storage config
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + config.replace("/", "-") + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createHandheldVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Storage options for gaming handhelds
+        List<String> storageOptions = Arrays.asList("64GB", "256GB", "512GB", "1TB");
+
+        // Restricted handheld colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        for (String storage : storageOptions) {
+            int colorCount = Math.min(random.nextInt(2) + 1, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(15) + 2;
+                variants.add(ProductVariant.builder()
+                        .size(storage)
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createKeyboardVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Switch types for mechanical keyboards
+        List<String> switchTypes = Arrays.asList(
+            "Red Switch", "Blue Switch", "Brown Switch", "Black Switch",
+            "Silver Switch", "Tactile", "Linear", "Clicky"
+        );
+
+        // Restricted keyboard colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        // Some keyboards come in different switch types
+        boolean hasSwitchVariants = product.getName().toLowerCase().contains("mechanical") ||
+                                   Arrays.asList("Razer", "Corsair", "Logitech", "SteelSeries").contains(brand);
+
+        if (hasSwitchVariants) {
+            int switchCount = Math.min(random.nextInt(3) + 1, switchTypes.size());
+            List<String> selectedSwitches = getRandomSubset(switchTypes, switchCount);
+
+            for (String switchType : selectedSwitches) {
+                int colorCount = Math.min(random.nextInt(2) + 1, colors.size());
+                List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+                for (String color : selectedColors) {
+                    int stock = random.nextInt(25) + 5;
+                    variants.add(ProductVariant.builder()
+                            .size(switchType) // Using size field for switch type
+                            .color(color)
+                            .stock(stock)
+                            .sku(generateSKU(product.getName() + "-" + switchType.replace(" ", "") + "-" + color))
+                            .product(product)
+                            .build());
+                }
+            }
+        } else {
+            // Non-mechanical keyboards - just color variants
+            int colorCount = Math.min(random.nextInt(3) + 1, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(30) + 10;
+                variants.add(ProductVariant.builder()
+                        .size("Standard")
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createMouseVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Restricted mouse colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        // Some gaming mice have different DPI variants
+        boolean hasGamingVariants = product.getName().toLowerCase().contains("gaming") ||
+                                   Arrays.asList("Razer", "Logitech", "Corsair", "SteelSeries").contains(brand);
+
+        if (hasGamingVariants) {
+            List<String> dpiVariants = Arrays.asList("Standard DPI", "High DPI", "Pro DPI");
+
+            for (String dpi : dpiVariants) {
+                int colorCount = Math.min(random.nextInt(2) + 1, colors.size());
+                List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+                for (String color : selectedColors) {
+                    int stock = random.nextInt(20) + 5;
+                    variants.add(ProductVariant.builder()
+                            .size(dpi)
+                            .color(color)
+                            .stock(stock)
+                            .sku(generateSKU(product.getName() + "-" + dpi.replace(" ", "") + "-" + color))
+                            .product(product)
+                            .build());
+                }
+            }
+        } else {
+            // Regular mice - just color variants
+            int colorCount = Math.min(random.nextInt(3) + 1, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(25) + 8;
+                variants.add(ProductVariant.builder()
+                        .size("Standard")
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createControllerVariants(Product product, String brand) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Restricted controller colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+
+        // Special editions for some brands
+        List<String> editions = Arrays.asList("Standard", "Elite", "Pro", "Limited Edition");
+
+        for (String edition : editions.subList(0, random.nextInt(editions.size()) + 1)) {
+            int colorCount = Math.min(random.nextInt(3) + 1, colors.size());
+            List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+            for (String color : selectedColors) {
+                int stock = random.nextInt(20) + 5;
+                variants.add(ProductVariant.builder()
+                        .size(edition)
+                        .color(color)
+                        .stock(stock)
+                        .sku(generateSKU(product.getName() + "-" + edition.replace(" ", "") + "-" + color))
+                        .product(product)
+                        .build());
+            }
+        }
+
+        return variants;
+    }
+
+    private List<ProductVariant> createGenericVariants(Product product) {
+        List<ProductVariant> variants = new ArrayList<>();
+
+        // Restricted generic colors
+        List<String> colors = Arrays.asList("Red", "White", "Black", "Blue");
+        int colorCount = Math.min(random.nextInt(3) + 1, colors.size());
+        List<String> selectedColors = getRandomSubset(colors, colorCount);
+
+        for (String color : selectedColors) {
+            int stock = random.nextInt(30) + 10;
+            variants.add(ProductVariant.builder()
+                    .size("Standard")
+                    .color(color)
+                    .stock(stock)
+                    .sku(generateSKU(product.getName() + "-" + color))
+                    .product(product)
+                    .build());
+        }
+
+        return variants;
+    }
+
+    /**
+     * Gets a random subset of items from a list.
+     */
+    private <T> List<T> getRandomSubset(List<T> list, int size) {
+        size = Math.min(size, list.size());
+        List<T> copy = new ArrayList<>(list);
+        Collections.shuffle(copy, random);
+        return copy.subList(0, size);
+    }
+
+    /**
+     * Generates a unique SKU for a product variant.
+     */
+    private String generateSKU(String productInfo) {
+        // Remove special characters and spaces, then add random suffix
+        String cleanInfo = productInfo.replaceAll("[^a-zA-Z0-9-]", "")
+                .replaceAll("\\s+", "-")
+                .toUpperCase();
+
+        // Limit length and add random suffix for uniqueness
+        if (cleanInfo.length() > 20) {
+            cleanInfo = cleanInfo.substring(0, 20);
+        }
+
+        return cleanInfo + "-" + faker.number().numberBetween(1000, 9999);
     }
 
     private void seedDiscountCodes() {
         if (discountCodeRepo.count() > 0) return;
         System.out.println("Seeding discount codes...");
-        List<DiscountCode> codes = IntStream.range(0, NUM_DISCOUNT_CODES)
-                .mapToObj(i -> DiscountCode.builder()
-                        .code(faker.commerce().promotionCode().toUpperCase())
-                        .discountAmount(random.nextInt(50) + 5)
-                        .expiryDate(faker.date().future(180, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                        .isActive(random.nextBoolean())
-                        .build())
-                .collect(Collectors.toList());
-        discountCodeRepo.saveAll(codes);
-        System.out.println(codes.size() + " discount codes created.");
+        List<DiscountCode> discountCodes = new ArrayList<>();
+
+        for (int i = 0; i < NUM_DISCOUNT_CODES; i++) {
+            DiscountCode discountCode = DiscountCode.builder()
+                    .code(faker.lorem().word().toUpperCase() + faker.number().numberBetween(10, 99))
+                    .discountAmount(faker.number().numberBetween(5, 25)) // Changed from discountPercentage to discountAmount
+                    .expiryDate(LocalDate.now().plusDays(faker.number().numberBetween(30, 365))) // Changed to LocalDate
+                    .isActive(random.nextBoolean())
+                    .build();
+            discountCodes.add(discountCode);
+        }
+
+        discountCodeRepo.saveAll(discountCodes);
+        System.out.println(discountCodes.size() + " discount codes created.");
     }
 
     private void seedOrders() {
@@ -719,48 +1077,57 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Seeding orders...");
         List<User> users = userRepo.findAll();
         if (users.isEmpty()) return;
-        List<Order> orders = IntStream.range(0, NUM_ORDERS)
-                .mapToObj(i -> Order.builder()
-                        .orderDate(faker.date().past(365, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
-                        .status(Order.Status.values()[random.nextInt(Order.Status.values().length)])
-                        .totalAmount(BigDecimal.ZERO)
-                        .user(users.get(random.nextInt(users.size())))
-                        .build())
-                .collect(Collectors.toList());
+
+        List<Order> orders = new ArrayList<>();
+        Order.Status[] statuses = Order.Status.values();
+
+        for (int i = 0; i < NUM_ORDERS; i++) {
+            User user = users.get(random.nextInt(users.size()));
+            Order order = Order.builder()
+                    .user(user)
+                    .status(statuses[random.nextInt(statuses.length)])
+                    .orderDate(randomCreatedAt(random))
+                    .totalAmount(BigDecimal.ZERO) // Will be updated when order items are added
+                    .build();
+            orders.add(order);
+        }
+
         orderRepo.saveAll(orders);
         System.out.println(orders.size() + " orders created.");
     }
 
     private void seedOrderItemsAndUpdateTotals() {
         if (orderItemRepo.count() > 0) return;
-        System.out.println("Seeding order items and updating order totals...");
+        System.out.println("Seeding order items...");
         List<Order> orders = orderRepo.findAll();
         List<ProductVariant> variants = productVariantRepo.findAll();
         if (orders.isEmpty() || variants.isEmpty()) return;
+
         List<OrderItem> orderItems = new ArrayList<>();
+
         for (Order order : orders) {
-            int itemCount = random.nextInt(5) + 1;
+            int itemCount = random.nextInt(3) + 1; // 1-3 items per order
             BigDecimal orderTotal = BigDecimal.ZERO;
-            Set<ProductVariant> usedVariants = new HashSet<>();
+
             for (int i = 0; i < itemCount; i++) {
-                ProductVariant variant;
-                do {
-                    variant = variants.get(random.nextInt(variants.size()));
-                } while (usedVariants.contains(variant));
-                usedVariants.add(variant);
-                int quantity = random.nextInt(3) + 1;
-                BigDecimal unitPrice = variant.getProduct().getBasePrice();
-                BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-                orderTotal = orderTotal.add(itemTotal);
-                orderItems.add(OrderItem.builder()
-                        .quantity(quantity)
-                        .unitPrice(unitPrice)
+                ProductVariant variant = variants.get(random.nextInt(variants.size()));
+                int quantity = random.nextInt(2) + 1; // 1-2 quantity
+                BigDecimal itemPrice = variant.getProduct().getBasePrice();
+                BigDecimal itemTotal = itemPrice.multiply(BigDecimal.valueOf(quantity));
+
+                OrderItem orderItem = OrderItem.builder()
                         .order(order)
                         .productVariant(variant)
-                        .build());
+                        .quantity(quantity)
+                        .unitPrice(itemPrice) // Changed from .price() to .unitPrice()
+                        .build();
+                orderItems.add(orderItem);
+                orderTotal = orderTotal.add(itemTotal);
             }
-            order.setTotalAmount(orderTotal.setScale(2, RoundingMode.HALF_UP));
+
+            order.setTotalAmount(orderTotal);
         }
+
         orderItemRepo.saveAll(orderItems);
         orderRepo.saveAll(orders);
         System.out.println(orderItems.size() + " order items created and order totals updated.");
@@ -771,8 +1138,10 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Seeding payments...");
         List<Order> orders = orderRepo.findAll();
         if (orders.isEmpty()) return;
+
         List<String> paymentMethods = List.of("Credit Card", "PayPal", "Apple Pay", "Google Pay", "Stripe");
         Payment.Status[] statuses = Payment.Status.values();
+
         List<Payment> payments = orders.stream()
                 .filter(order -> order.getPayment() == null && order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)
                 .map(order -> {
@@ -785,6 +1154,7 @@ public class DataSeeder implements CommandLineRunner {
                     return payment;
                 })
                 .collect(Collectors.toList());
+
         paymentRepo.saveAll(payments);
         System.out.println(payments.size() + " payments created.");
     }
@@ -832,19 +1202,28 @@ public class DataSeeder implements CommandLineRunner {
         List<Cart> carts = cartRepo.findAll();
         List<ProductVariant> variants = productVariantRepo.findAll();
         if (carts.isEmpty() || variants.isEmpty()) return;
+
         List<CartItem> cartItems = new ArrayList<>();
+
         for (Cart cart : carts) {
-            if (random.nextDouble() < 0.7) {
-                int itemCount = random.nextInt(4) + 1;
+            // 50% chance a cart has items
+            if (random.nextBoolean()) {
+                int itemCount = random.nextInt(3) + 1; // 1-3 items per cart
+
                 for (int i = 0; i < itemCount; i++) {
-                    cartItems.add(CartItem.builder()
-                            .quantity(random.nextInt(3) + 1)
+                    ProductVariant variant = variants.get(random.nextInt(variants.size()));
+                    int quantity = random.nextInt(2) + 1; // 1-2 quantity
+
+                    CartItem cartItem = CartItem.builder()
                             .cart(cart)
-                            .productVariant(variants.get(random.nextInt(variants.size())))
-                            .build());
+                            .productVariant(variant)
+                            .quantity(quantity)
+                            .build();
+                    cartItems.add(cartItem);
                 }
             }
         }
+
         cartItemRepo.saveAll(cartItems);
         System.out.println(cartItems.size() + " cart items created.");
     }
@@ -852,18 +1231,26 @@ public class DataSeeder implements CommandLineRunner {
     private void seedProductReviews() {
         if (productReviewRepo.count() > 0) return;
         System.out.println("Seeding product reviews...");
-        List<User> users = userRepo.findAll();
         List<Product> products = productRepo.findAll();
-        if (users.isEmpty() || products.isEmpty()) return;
-        List<ProductReview> reviews = IntStream.range(0, NUM_REVIEWS)
-                .mapToObj(i -> ProductReview.builder()
-                        .rating(random.nextInt(5) + 1)
-                        .comment(faker.lorem().paragraph(2))
-                        .createdAt(faker.date().past(730, TimeUnit.DAYS).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
-                        .user(users.get(random.nextInt(users.size())))
-                        .product(products.get(random.nextInt(products.size())))
-                        .build())
-                .collect(Collectors.toList());
+        List<User> users = userRepo.findAll();
+        if (products.isEmpty() || users.isEmpty()) return;
+
+        List<ProductReview> reviews = new ArrayList<>();
+
+        for (int i = 0; i < NUM_REVIEWS; i++) {
+            Product product = products.get(random.nextInt(products.size()));
+            User user = users.get(random.nextInt(users.size()));
+
+            ProductReview review = ProductReview.builder()
+                    .product(product)
+                    .user(user)
+                    .rating(random.nextInt(5) + 1) // 1-5 stars
+                    .comment(faker.lorem().sentence(faker.number().numberBetween(5, 20)))
+                    .createdAt(randomCreatedAt(random))
+                    .build();
+            reviews.add(review);
+        }
+
         productReviewRepo.saveAll(reviews);
         System.out.println(reviews.size() + " product reviews created.");
     }
@@ -894,12 +1281,4 @@ public class DataSeeder implements CommandLineRunner {
         wishlistRepo.saveAll(wishlists);
         System.out.println(wishlists.size() + " wishlists created.");
     }
-
-    private List<Product> getRandomSubset(List<Product> list, int size) {
-        size = Math.min(size, list.size());
-        List<Product> copy = new ArrayList<>(list);
-        Collections.shuffle(copy);
-        return copy.subList(0, size);
-    }
 }
-

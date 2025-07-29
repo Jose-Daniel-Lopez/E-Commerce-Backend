@@ -80,6 +80,16 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
      */
     private Integer totalStock;
 
+    /**
+     * Category ID (e.g., 1 for "Smartphones").
+     */
+    private Long categoryId;
+
+    /**
+     * Category name (e.g., "Smartphones").
+     */
+    private String categoryName;
+
     // ========================================================================
     // === MOBILE & COMPUTE (Phones, Tablets, Laptops, Handhelds)
     // ========================================================================
@@ -206,6 +216,11 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
         this.rating = product.getRating();
         this.basePrice = product.getBasePrice();
         this.totalStock = product.getTotalStock();
+
+        // Category fields
+        if (product.getCategory() != null) {
+            this.categoryName = product.getCategory().getName();
+        }
 
         // Mobile & Compute fields
         this.screenSize = product.getScreenSize();
