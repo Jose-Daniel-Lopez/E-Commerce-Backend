@@ -14,10 +14,8 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -111,10 +109,6 @@ public class DataSeeder implements CommandLineRunner {
                 "Pixel %s", "Pixel %s Pro", "Pixel Tablet %s"
         ));
 
-        rules.put("Sony", Arrays.asList(
-                "Xperia %s", "Xperia %s Pro"
-        ));
-
         rules.put("Xiaomi", Arrays.asList(
                 "Mi %s", "Redmi %s", "Redmi Note %s", "Poco %s", "Xiaomi %s"
         ));
@@ -124,7 +118,9 @@ public class DataSeeder implements CommandLineRunner {
         ));
 
         rules.put("Microsoft", Arrays.asList(
-                "Surface %s", "Surface Pro %s", "Surface Laptop %s", "Surface Book %s"
+                "Surface %s", "Surface Pro %s", "Surface Laptop %s", "Surface Book %s",
+                "Xbox Wireless Controller %s", "Elite %s", "Adaptive Controller",
+                "Sculpt %s", "Ergonomic Keyboard %s", "Surface Mouse %s", "Arc Mouse %s"
         ));
 
         rules.put("Dell", Arrays.asList(
@@ -136,11 +132,11 @@ public class DataSeeder implements CommandLineRunner {
         ));
 
         rules.put("Lenovo", Arrays.asList(
-                "ThinkPad %s", "Legion %s", "IdeaPad %s", "Yoga %s", "Flex %s"
+                "ThinkPad %s", "Legion %s", "IdeaPad %s", "Yoga %s", "Flex %s", "Legion Go %s"
         ));
 
         rules.put("ASUS", Arrays.asList(
-                "ROG Zephyrus %s", "ROG Flow %s", "TUF Gaming %s", "Vivobook %s", "Zenbook %s"
+                "ROG Zephyrus %s", "ROG Flow %s", "TUF Gaming %s", "Vivobook %s", "Zenbook %s", "ROG Ally %s"
         ));
 
         rules.put("Acer", Arrays.asList(
@@ -152,7 +148,10 @@ public class DataSeeder implements CommandLineRunner {
         ));
 
         rules.put("Razer", Arrays.asList(
-                "Blade %s", "Blade Stealth %s", "Blade Pro %s"
+                "Blade %s", "Blade Stealth %s", "Blade Pro %s",
+                "DeathAdder %s", "Viper %s", "Basilisk %s", "Naga %s",
+                "BlackWidow %s", "Huntsman %s", "Ornata %s",
+                "Wolverine %s", "Kishi %s"
         ));
 
         rules.put("Alienware", Arrays.asList(
@@ -178,12 +177,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // === INPUT & CONTROL ===
         rules.put("Logitech", Arrays.asList(
-                "MX %s", "G %s", "Z %s", "PRO %s", "Craft %s", "POP %s"
-        ));
-
-        rules.put("Razer", Arrays.asList(
-                "DeathAdder %s", "Viper %s", "Basilisk %s", "Naga %s",
-                "BlackWidow %s", "Huntsman %s", "Ornata %s"
+                "MX %s", "G %s", "Z %s", "PRO %s", "Craft %s", "POP %s", "G Cloud %s"
         ));
 
         rules.put("Corsair", Arrays.asList(
@@ -216,24 +210,13 @@ public class DataSeeder implements CommandLineRunner {
                 "TH80 %s", "ERGO42 %s", "AJ60 %s"
         ));
 
-        rules.put("Microsoft", Arrays.asList(
-                "Sculpt %s", "Ergonomic Keyboard %s", "Surface Mouse %s", "Arc Mouse %s"
-        ));
-
-        rules.put("Apple", Arrays.asList(
-                "Magic Keyboard %s", "Magic Mouse %s"
-        ));
-
         rules.put("8BitDo", Arrays.asList(
                 "Ultimate %s", "Pro %s", "Zero %s", "SN30 %s"
         ));
 
         rules.put("Sony", Arrays.asList(
+                "Xperia %s", "Xperia %s Pro",
                 "DualShock %s", "DualSense %s"
-        ));
-
-        rules.put("Microsoft", Arrays.asList(
-                "Xbox Wireless Controller %s", "Elite %s", "Adaptive Controller"
         ));
 
         // Fallback for any brand not explicitly listed
@@ -265,13 +248,13 @@ public class DataSeeder implements CommandLineRunner {
         validCategories.put("Corsair", Arrays.asList("Keyboards", "Mice"));
         validCategories.put("SteelSeries", Arrays.asList("Keyboards", "Mice"));
         validCategories.put("HyperX", Arrays.asList("Keyboards", "Mice"));
-        validCategories.put("Ducky", Arrays.asList("Keyboards"));
-        validCategories.put("Keychron", Arrays.asList("Keyboards"));
-        validCategories.put("Epomaker", Arrays.asList("Keyboards"));
-        validCategories.put("8BitDo", Arrays.asList("Controllers"));
-        validCategories.put("AYANEO", Arrays.asList("Handhelds"));
-        validCategories.put("GPD", Arrays.asList("Handhelds"));
-        validCategories.put("Steam", Arrays.asList("Handhelds"));
+        validCategories.put("Ducky", List.of("Keyboards"));
+        validCategories.put("Keychron", List.of("Keyboards"));
+        validCategories.put("Epomaker", List.of("Keyboards"));
+        validCategories.put("8BitDo", List.of("Controllers"));
+        validCategories.put("AYANEO", List.of("Handhelds"));
+        validCategories.put("GPD", List.of("Handhelds"));
+        validCategories.put("Steam", List.of("Handhelds"));
 
         List<String> allowed = validCategories.getOrDefault(brand, null);
         if (allowed == null) return true;
@@ -335,7 +318,7 @@ public class DataSeeder implements CommandLineRunner {
      */
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         System.out.println("Starting tech e-commerce data seeding process...");
         if (userRepo.count() == 0) seedUsers();
         if (cartRepo.count() == 0) seedCarts();
@@ -628,22 +611,28 @@ public class DataSeeder implements CommandLineRunner {
      * This ensures products get appropriate names for their category.
      */
     private String injectRealisticValues(String template, String brand, String category) {
+        // Use a copy to avoid modifying the original template in the map
         String result = template;
 
         // Category-specific naming logic
+        // Use a loop that replaces one placeholder at a time for templates with multiple "%s"
         while (result.contains("%s")) {
             String replacement = "";
 
             switch (category) {
                 case "Smartphones":
                     if ("Apple".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(12, 16)); // iPhone 12-15
+                        replacement = String.valueOf(faker.number().numberBetween(13, 16)); // iPhone 13-16
                     } else if ("Samsung".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(20, 25)); // Galaxy S20-S24
+                        replacement = String.valueOf(faker.number().numberBetween(21, 25)); // Galaxy S21-S25
                     } else if ("Google".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(6, 9)); // Pixel 6-8
+                        replacement = String.valueOf(faker.number().numberBetween(7, 9)); // Pixel 7-9
                     } else if ("Sony".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(1, 5)); // Xperia 1-5
+                        replacement = faker.options().option("1 V", "5 V", "10 V"); // Xperia models
+                    } else if ("OnePlus".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(10, 12));
+                    } else if ("Xiaomi".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(12, 14));
                     } else {
                         replacement = String.valueOf(faker.number().numberBetween(9, 15));
                     }
@@ -651,31 +640,37 @@ public class DataSeeder implements CommandLineRunner {
 
                 case "Tablets":
                     if ("Apple".equals(brand)) {
-                        replacement = faker.options().option("Air", "Pro", "Mini", "9th Gen", "10th Gen");
+                        replacement = faker.options().option("Air", "Pro 11", "Pro 12.9", "Mini", "10th Gen");
                     } else if ("Samsung".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(7, 9)); // Tab S7-S9
+                        replacement = String.valueOf(faker.number().numberBetween(8, 9)); // Tab S8-S9
                     } else {
-                        replacement = String.valueOf(faker.number().numberBetween(7, 12));
+                        replacement = String.valueOf(faker.number().numberBetween(8, 12));
                     }
                     break;
 
                 case "Laptops":
                     if ("Apple".equals(brand)) {
-                        replacement = faker.options().option("Air M2", "Pro M2", "Pro M3", "14", "16");
-                    } else if ("Dell".equals(brand)) {
-                        replacement = String.valueOf(faker.number().numberBetween(13, 17)); // XPS 13-17
+                        replacement = faker.options().option("Air M2", "Air M3", "Pro M2", "Pro M3", "14-inch", "16-inch");
+                    } else if ("Dell".equals(brand) || "HP".equals(brand) || "Lenovo".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(13, 17)); // Screen sizes
+                    } else if ("Razer".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(14, 18));
+                    } else if ("Alienware".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(5, 8)); // e.g., R5, R6
                     } else {
-                        replacement = String.valueOf(faker.number().numberBetween(13, 17));
+                        replacement = faker.options().option("13", "14", "15", "16", "17");
                     }
                     break;
 
                 case "Controllers":
                     if ("Sony".equals(brand)) {
-                        replacement = faker.options().option("X", "Edge", "Pro", "Wireless");
+                        replacement = faker.options().option("Edge", "Wireless", "Portal");
                     } else if ("Microsoft".equals(brand)) {
-                        replacement = faker.options().option("Series X/S", "Elite", "Core", "Wireless");
+                        replacement = faker.options().option("Series X/S", "Elite Series 2", "Core", "Wireless");
                     } else if ("8BitDo".equals(brand)) {
-                        replacement = faker.options().option("Pro 2", "Ultimate", "Zero 2", "SN30");
+                        replacement = faker.options().option("Pro 2", "Ultimate", "Zero 2", "SN30 Pro");
+                    } else if ("Razer".equals(brand)) {
+                        replacement = faker.options().option("Wolverine V2", "Kishi V2", "Raiju");
                     } else {
                         replacement = faker.options().option("Pro", "Elite", "Wireless", "Ultimate");
                     }
@@ -683,33 +678,49 @@ public class DataSeeder implements CommandLineRunner {
 
                 case "Keyboards":
                     if ("Logitech".equals(brand)) {
-                        replacement = faker.options().option("MX Keys", "G915", "G Pro X", "Craft");
+                        replacement = faker.options().option("MX Keys S", "G915 TKL", "G Pro X TKL", "Wave Keys");
                     } else if ("Razer".equals(brand)) {
-                        replacement = faker.options().option("BlackWidow V3", "Huntsman Elite", "Ornata V3");
+                        replacement = faker.options().option("BlackWidow V4", "Huntsman V3", "Ornata V3");
+                    } else if ("Corsair".equals(brand)) {
+                        replacement = faker.options().option("K70", "K100", "K65");
+                    } else if (Arrays.asList("Keychron", "Ducky").contains(brand)) {
+                        replacement = faker.options().option("K2", "Q1", "V1", "One 3");
                     } else {
-                        replacement = faker.options().option("Pro", "Elite", "Gaming", "Mechanical");
+                        replacement = faker.options().option("Pro", "Elite", "Gaming", "Mechanical", "TKL");
                     }
                     break;
 
                 case "Mice":
                     if ("Logitech".equals(brand)) {
-                        replacement = faker.options().option("MX Master 3S", "G Pro X", "G502 Hero");
+                        replacement = faker.options().option("MX Master 3S", "G Pro X Superlight 2", "G502 X");
                     } else if ("Razer".equals(brand)) {
-                        replacement = faker.options().option("DeathAdder V3", "Viper V2", "Basilisk V3");
+                        replacement = faker.options().option("DeathAdder V3 Pro", "Viper V2 Pro", "Basilisk V3 Pro");
+                    } else if ("SteelSeries".equals(brand)) {
+                        replacement = faker.options().option("Aerox 5", "Rival 3", "Sensei Ten");
                     } else {
                         replacement = faker.options().option("Pro", "Gaming", "Wireless", "Elite");
                     }
                     break;
 
                 case "Handhelds":
-                    replacement = faker.options().option("Pro", "OLED", "Deck", "Ultimate", "Win 4");
+                    if ("Steam".equals(brand)) {
+                        replacement = faker.options().option("256GB", "512GB", "1TB");
+                    } else if ("ASUS".equals(brand)) {
+                        replacement = faker.options().option("Z1 Extreme", "Z1");
+                    } else if ("Lenovo".equals(brand)) {
+                        replacement = faker.options().option("512GB", "1TB");
+                    } else {
+                        replacement = faker.options().option("Pro", "OLED", "Ultimate", "Win 4");
+                    }
                     break;
 
                 default:
-                    replacement = faker.options().option("Pro", "Max", "Ultra", "Elite", "Plus", "Edition");
+                    // Fallback for any other category
+                    replacement = faker.options().option("Pro", "Max", "Ultra", "Elite", "Plus", "Standard Edition");
                     break;
             }
 
+            // Replace only the first occurrence of "%s" to handle multiple placeholders correctly
             result = result.replaceFirst("%s", Matcher.quoteReplacement(replacement));
         }
 
