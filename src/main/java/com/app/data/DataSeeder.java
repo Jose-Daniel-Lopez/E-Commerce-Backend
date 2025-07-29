@@ -624,34 +624,95 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     /**
-     * Injects realistic values into naming templates (e.g., model numbers, versions).
+     * Injects realistic values into naming templates based on BOTH brand and category.
+     * This ensures products get appropriate names for their category.
      */
     private String injectRealisticValues(String template, String brand, String category) {
         String result = template;
+
+        // Category-specific naming logic
         while (result.contains("%s")) {
             String replacement = "";
 
-            if (result.contains("iPhone") || result.contains("Galaxy S") || result.contains("Pixel") ||
-                    result.contains("Xperia") || result.contains("OnePlus") || result.contains("Mi") ||
-                    result.contains("Redmi") || result.contains("Poco")) {
-                replacement = String.valueOf(faker.number().numberBetween(7, 25));
-            } else if (result.contains("Surface") || result.contains("XPS") || result.contains("Spectre") ||
-                    result.contains("ThinkPad") || result.contains("MacBook")) {
-                replacement = String.valueOf(faker.number().numberBetween(3, 10));
-            } else if (result.contains("Watch") || result.contains("Buds") || result.contains("AirPods")) {
-                replacement = String.valueOf(faker.number().numberBetween(1, 8));
-            } else if (result.contains("Alpha") || result.contains("EOS") || result.contains("Z ")) {
-                replacement = String.valueOf(faker.number().numberBetween(5, 9)) + "000";
-            } else if (result.contains("Blade") || result.contains("Razer")) {
-                replacement = String.valueOf(faker.number().numberBetween(14, 18));
-            } else if (result.contains("Xbox")) {
-                replacement = faker.options().option("Series X", "Series S", "One X", "One S");
-            } else {
-                replacement = faker.options().option("X", "Pro", "Ultra", "Max", "Lite", "SE", "Edition", "Plus");
+            switch (category) {
+                case "Smartphones":
+                    if ("Apple".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(12, 16)); // iPhone 12-15
+                    } else if ("Samsung".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(20, 25)); // Galaxy S20-S24
+                    } else if ("Google".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(6, 9)); // Pixel 6-8
+                    } else if ("Sony".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(1, 5)); // Xperia 1-5
+                    } else {
+                        replacement = String.valueOf(faker.number().numberBetween(9, 15));
+                    }
+                    break;
+
+                case "Tablets":
+                    if ("Apple".equals(brand)) {
+                        replacement = faker.options().option("Air", "Pro", "Mini", "9th Gen", "10th Gen");
+                    } else if ("Samsung".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(7, 9)); // Tab S7-S9
+                    } else {
+                        replacement = String.valueOf(faker.number().numberBetween(7, 12));
+                    }
+                    break;
+
+                case "Laptops":
+                    if ("Apple".equals(brand)) {
+                        replacement = faker.options().option("Air M2", "Pro M2", "Pro M3", "14", "16");
+                    } else if ("Dell".equals(brand)) {
+                        replacement = String.valueOf(faker.number().numberBetween(13, 17)); // XPS 13-17
+                    } else {
+                        replacement = String.valueOf(faker.number().numberBetween(13, 17));
+                    }
+                    break;
+
+                case "Controllers":
+                    if ("Sony".equals(brand)) {
+                        replacement = faker.options().option("X", "Edge", "Pro", "Wireless");
+                    } else if ("Microsoft".equals(brand)) {
+                        replacement = faker.options().option("Series X/S", "Elite", "Core", "Wireless");
+                    } else if ("8BitDo".equals(brand)) {
+                        replacement = faker.options().option("Pro 2", "Ultimate", "Zero 2", "SN30");
+                    } else {
+                        replacement = faker.options().option("Pro", "Elite", "Wireless", "Ultimate");
+                    }
+                    break;
+
+                case "Keyboards":
+                    if ("Logitech".equals(brand)) {
+                        replacement = faker.options().option("MX Keys", "G915", "G Pro X", "Craft");
+                    } else if ("Razer".equals(brand)) {
+                        replacement = faker.options().option("BlackWidow V3", "Huntsman Elite", "Ornata V3");
+                    } else {
+                        replacement = faker.options().option("Pro", "Elite", "Gaming", "Mechanical");
+                    }
+                    break;
+
+                case "Mice":
+                    if ("Logitech".equals(brand)) {
+                        replacement = faker.options().option("MX Master 3S", "G Pro X", "G502 Hero");
+                    } else if ("Razer".equals(brand)) {
+                        replacement = faker.options().option("DeathAdder V3", "Viper V2", "Basilisk V3");
+                    } else {
+                        replacement = faker.options().option("Pro", "Gaming", "Wireless", "Elite");
+                    }
+                    break;
+
+                case "Handhelds":
+                    replacement = faker.options().option("Pro", "OLED", "Deck", "Ultimate", "Win 4");
+                    break;
+
+                default:
+                    replacement = faker.options().option("Pro", "Max", "Ultra", "Elite", "Plus", "Edition");
+                    break;
             }
 
             result = result.replaceFirst("%s", Matcher.quoteReplacement(replacement));
         }
+
         return result.trim();
     }
 

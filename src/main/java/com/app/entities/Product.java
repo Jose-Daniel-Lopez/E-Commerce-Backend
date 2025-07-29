@@ -216,7 +216,7 @@ public class Product {
     private String os;
 
     // ========================================================================
-    // === INPUT & CONTROL (Mice, Keyboards, Controllers, Ergo Devices)
+    // === INPUT & CONTROL (Mice, Keyboards, Controllers)
     // ========================================================================
 
     /**
