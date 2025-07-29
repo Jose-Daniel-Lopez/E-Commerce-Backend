@@ -85,10 +85,6 @@ public class DataSeeder implements CommandLineRunner {
                 "Sony", "Microsoft", "Nintendo", "8BitDo", "Razer", "Logitech", "Astro", "DualShock", "Scuf", "PowerA"
         ));
 
-        map.put("Ergonomic Devices", Arrays.asList(
-                "Logitech", "Microsoft", "Kinesis", "ErgoDox", "Perixx", "Vertic", "Evolution", "3M"
-        ));
-
         return map;
     }
 
@@ -271,7 +267,6 @@ public class DataSeeder implements CommandLineRunner {
         validCategories.put("HyperX", Arrays.asList("Keyboards", "Mice"));
         validCategories.put("Ducky", Arrays.asList("Keyboards"));
         validCategories.put("Keychron", Arrays.asList("Keyboards"));
-        validCategories.put("Kinesis", Arrays.asList("Keyboards", "Ergonomic Devices"));
         validCategories.put("Epomaker", Arrays.asList("Keyboards"));
         validCategories.put("8BitDo", Arrays.asList("Controllers"));
         validCategories.put("AYANEO", Arrays.asList("Handhelds"));
@@ -439,8 +434,7 @@ public class DataSeeder implements CommandLineRunner {
                 // === INPUT & CONTROL ===
                 "Keyboards",
                 "Mice",
-                "Controllers",        // e.g., gamepads, joysticks
-                "Ergonomic Devices"   // e.g., vertical mice, split keyboards
+                "Controllers"        // e.g., gamepads, joysticks
         );
 
         List<String> categoryIcons = Arrays.asList(
@@ -448,13 +442,12 @@ public class DataSeeder implements CommandLineRunner {
                 "gi-smartphone",      // Smartphones
                 "co-tablet",          // Tablets
                 "bi-laptop",          // Laptops
-                "gi-controller",      // Handhelds
+                "bi-nintendo-switch",      // Handhelds
 
                 // INPUT & CONTROL
                 "bi-keyboard",        // Keyboards
                 "bi-mouse",           // Mice
-                "gi-console-controller", // Controllers
-                "ri-hand-peace-line"  // Ergonomic Devices (symbolizing comfort/design)
+                "gi-console-controller" // Controllers
         );
 
         List<Category> categories = IntStream.range(0, categoryNames.size())
