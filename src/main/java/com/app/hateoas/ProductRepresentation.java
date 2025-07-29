@@ -11,15 +11,18 @@ import java.math.BigDecimal;
  * Data Transfer Object (DTO) representing a product in the REST API response.
  * Extends {@link RepresentationModel} to support HATEOAS (Hypermedia as the Engine of Application State).
  *
- * <p>This class is used to:
+ * <p>This class is used to:</p>
  * <ul>
  *   <li>Decouple internal entity structure from API contract</li>
  *   <li>Add hypermedia links (e.g., self, related resources)</li>
  *   <li>Provide a stable API even if the underlying entity changes</li>
  * </ul>
  *
- * <p>It includes common product attributes and smartphone-specific fields.
- * Future category-specific fields (e.g., screen type, protection class) can be added as needed.
+ * <p>It includes core attributes and supports both:</p>
+ * <ul>
+ *   <li><strong>Mobile & Compute</strong>: Phones, Tablets, Laptops</li>
+ *   <li><strong>Input & Control</strong>: Mice, Keyboards, Controllers</li>
+ * </ul>
  */
 @Getter
 @Setter
@@ -36,7 +39,7 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
     private Long id;
 
     /**
-     * Name of the product (e.g., "Smartphone X200").
+     * Name of the product (e.g., "iPhone 15 Pro", "Galaxy S24").
      * Displayed prominently in UI and search results.
      */
     private String name;
@@ -48,7 +51,7 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
     private String description;
 
     /**
-     * Manufacturer or brand name (e.g., "TechCorp", "PixelTech").
+     * Manufacturer or brand name (e.g., "Apple", "Logitech").
      * Used for filtering and grouping in the frontend.
      */
     private String brand;
@@ -60,7 +63,7 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
     private Boolean isFeatured;
 
     /**
-     * Average customer rating (typically 0–5).
+     * Average customer rating (0–5 scale).
      * May be null if no reviews exist.
      */
     private Double rating;
@@ -77,51 +80,98 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
      */
     private Integer totalStock;
 
-    // =======================
-    // 📱 Smartphone-Specific Attributes
-    // =======================
+    // ========================================================================
+    // === MOBILE & COMPUTE (Phones, Tablets, Laptops, Handhelds)
+    // ========================================================================
 
     /**
-     * Screen size in inches (e.g., "6.5 inches").
-     * Used in filtering and product comparison.
+     * Screen size in inches (e.g., "6.7\"", "13.3\"").
      */
     private String screenSize;
 
     /**
-     * CPU/processor model (e.g., "Snapdragon 8 Gen 2").
-     * Part of the technical specification.
+     * CPU/processor name (e.g., "Snapdragon 8 Gen 3", "Apple M2").
      */
     private String cpu;
 
     /**
-     * Internal memory/RAM capacity (e.g., "8GB").
-     * Used in filtering and product selection.
+     * RAM in GB (e.g., 8, 16, 32).
      */
-    private String memory;
+    private Integer ram;
 
     /**
-     * Number of CPU cores (e.g., 8).
-     * Indicates processing power.
+     * Combined storage type and capacity (e.g., "512GB NVMe SSD", "256GB UFS").
      */
-    private Integer numberOfCores;
+    private String storage;
 
     /**
-     * Rear camera specifications (e.g., "48MP + 12MP Dual Camera").
-     * Displayed in product details and specs table.
+     * Graphics processing unit (e.g., "NVIDIA RTX 4070", "Adreno 750").
+     */
+    private String gpu;
+
+    /**
+     * Refresh rate of the display in Hz (e.g., 60, 90, 120, 144).
+     */
+    private Integer refreshRate;
+
+    /**
+     * Rear camera specifications (e.g., "200MP", "48MP + 12MP Ultra-wide").
      */
     private String camera;
 
     /**
-     * Front-facing (selfie) camera specifications (e.g., "12MP").
-     * Relevant for users interested in video calls or selfies.
+     * Front-facing camera specifications (e.g., "12MP").
      */
     private String frontCamera;
 
     /**
-     * Battery capacity and type (e.g., "5000mAh Li-Ion").
-     * Important for user experience and filtering.
+     * Battery capacity (e.g., "5000mAh").
      */
     private String battery;
+
+    /**
+     * Operating system (e.g., "Android 14", "Windows 11", "macOS Sonoma").
+     */
+    private String os;
+
+    // ========================================================================
+    // === INPUT & CONTROL (Mice, Keyboards, Controllers, Ergo Devices)
+    // ========================================================================
+
+    /**
+     * DPI (dots per inch) sensitivity (e.g., 1600, 3200).
+     */
+    private Integer dpi;
+
+    /**
+     * Polling rate in Hz (e.g., 125, 500, 1000). Common in gaming peripherals.
+     */
+    private Integer pollingRate;
+
+    /**
+     * Key or switch type (e.g., "Mechanical - Red Cherry MX", "Optical").
+     */
+    private String switchType;
+
+    /**
+     * Backlighting features (e.g., "RGB", "White LED", "None").
+     */
+    private String backlighting;
+
+    /**
+     * Whether the device has programmable buttons.
+     */
+    private Boolean programmableButtons;
+
+    /**
+     * Battery life duration (e.g., "40 hours", "Up to 200 hours").
+     */
+    private String batteryLife;
+
+    /**
+     * Whether the device has an ergonomic design (e.g., split, vertical, ambidextrous).
+     */
+    private Boolean ergonomic;
 
     // =======================
     // 🛠️ Constructors
@@ -137,7 +187,7 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
 
     /**
      * Constructs a {@link ProductRepresentation} from a {@link Product} entity.
-     * Maps all relevant fields from the domain entity to the API representation.
+     * Maps all relevant fields based on the product's category.
      *
      * @param product the source product entity; must not be {@code null}
      * @throws NullPointerException if {@code product} is {@code null}
@@ -147,6 +197,7 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
             throw new NullPointerException("Product cannot be null");
         }
 
+        // Core attributes
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
@@ -156,16 +207,25 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
         this.basePrice = product.getBasePrice();
         this.totalStock = product.getTotalStock();
 
-        // Smartphone-specific attributes
+        // Mobile & Compute fields
         this.screenSize = product.getScreenSize();
         this.cpu = product.getCpu();
-        this.memory = product.getMemory();
-        this.numberOfCores = product.getNumberOfCores();
+        this.ram = product.getRam();
+        this.storage = product.getStorage();
+        this.gpu = product.getGpu();
+        this.refreshRate = product.getRefreshRate();
         this.camera = product.getCamera();
         this.frontCamera = product.getFrontCamera();
         this.battery = product.getBattery();
-    }
+        this.os = product.getOs();
 
-    // Note: Lombok generates equals(), hashCode(), and toString() implicitly.
-    // If custom behavior is needed, override them explicitly.
+        // Input & Control fields
+        this.dpi = product.getDpi();
+        this.pollingRate = product.getPollingRate();
+        this.switchType = product.getSwitchType();
+        this.backlighting = product.getBacklighting();
+        this.programmableButtons = product.getProgrammableButtons();
+        this.batteryLife = product.getBatteryLife();
+        this.ergonomic = product.getErgonomic();
+    }
 }

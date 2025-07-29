@@ -139,7 +139,7 @@ public class ProductController {
      * Retrieves all distinct brand names from the product catalog.
      * Used to populate brand filter dropdowns in the UI.
      *
-     * @return a list of unique brand names (e.g., "Apple", "Samsung", "Sony")
+     * @return a list of unique brand names (e.g., "Apple", "Samsung", "Logitech")
      * @response 200 Returns list of brands; may be empty
      */
     @GetMapping("/brands")
@@ -148,14 +148,62 @@ public class ProductController {
     }
 
     /**
-     * Retrieves a predefined list of memory options supported across products.
+     * Retrieves a predefined list of storage options supported across products.
      * These are static values used for filtering (not dynamically pulled from DB).
+     * Replaces the old 'memory' concept with modern 'storage' terminology.
      *
-     * @return a list of common memory capacities (e.g., "128GB", "512GB", "1TB")
-     * @response 200 Always returns the same list of standard memory sizes
+     * @return a list of common storage capacities (e.g., "128GB", "512GB", "1TB")
+     * @response 200 Always returns the same list of standard storage sizes
      */
-    @GetMapping("/memories")
-    public List<String> getAllMemoryOptions() {
-        return productService.getAllMemoryOptions();
+    @GetMapping("/storage")
+    public List<String> getAllStorageOptions() {
+        return productService.getAllStorageOptions();
+    }
+
+    /**
+     * Retrieves a predefined list of RAM options in GB.
+     * Used for filtering laptops, tablets, and smartphones.
+     *
+     * @return a list of common RAM sizes (e.g., 8, 16, 32)
+     * @response 200 Always returns the same list of standard RAM sizes
+     */
+    @GetMapping("/ram")
+    public List<Integer> getAllRamOptions() {
+        return productService.getAllRamOptions();
+    }
+
+    /**
+     * Retrieves a list of operating systems commonly used in the catalog.
+     * Helps populate OS filters for Mobile & Compute devices.
+     *
+     * @return a list of common OS names (e.g., "Android", "Windows 11", "macOS")
+     * @response 200 Returns list of operating systems
+     */
+    @GetMapping("/os")
+    public List<String> getOperatingSystems() {
+        return productService.getOperatingSystems();
+    }
+
+    /**
+     * Retrieves a list of switch types for keyboards.
+     * Used in filtering mechanical and membrane keyboards.
+     *
+     * @return a list of switch types (e.g., "Mechanical - Red Cherry MX", "Optical")
+     * @response 200 Returns list of switch types
+     */
+    @GetMapping("/switch-types")
+    public List<String> getSwitchTypes() {
+        return productService.getSwitchTypes();
+    }
+
+    /**
+     * Retrieves a list of backlighting options for input devices.
+     *
+     * @return a list of backlighting features (e.g., "RGB", "White LED", "None")
+     * @response 200 Returns list of backlighting options
+     */
+    @GetMapping("/backlighting")
+    public List<String> getBacklightingOptions() {
+        return productService.getBacklightingOptions();
     }
 }

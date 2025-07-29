@@ -15,6 +15,12 @@ import java.util.List;
 /**
  * Repository interface for managing Product entities.
  * Provides CRUD operations and custom query methods via Spring Data JPA.
+ *
+ * <p>Now aligned with the updated Product schema supporting:</p>
+ * <ul>
+ *   <li><strong>Mobile & Compute</strong>: RAM, Storage, OS, GPU, CPU</li>
+ *   <li><strong>Input & Control</strong>: DPI, Polling Rate, Switch Type</li>
+ * </ul>
  */
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -43,17 +49,78 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      *
      * @return a List of unique brand names as strings
      */
-    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL")
+    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL ORDER BY p.brand")
     List<String> findAllDistinctBrands();
 
+    // ========================================================================
+    // === MODERN FILTER QUERIES (REPLACE LEGACY ONES)
+    // ========================================================================
+
     /**
-     * Retrieves a list of all distinct memory options from products where memory is not null.
-     * Useful for populating memory filters (e.g., 64GB, 128GB) in the UI.
+     * Retrieves a list of all distinct storage values from products where storage is not null.
+     * Used for filtering by capacity (e.g., "512GB", "1TB").
      *
-     * @return a List of unique memory values as strings
+     * @return a List of unique storage values as strings
      */
-    @Query("SELECT DISTINCT p.memory FROM Product p WHERE p.memory IS NOT NULL")
-    List<String> findAllDistinctMemoryOptions();
+    @Query("SELECT DISTINCT p.storage FROM Product p WHERE p.storage IS NOT NULL")
+    List<String> findAllDistinctStorageOptions();
+
+    /**
+     * Retrieves a list of all distinct RAM values (in GB) from products where ram is not null.
+     * Used for filtering laptops, tablets, and smartphones.
+     *
+     * @return a List of unique RAM capacities as integers
+     */
+    @Query("SELECT DISTINCT p.ram FROM Product p WHERE p.ram IS NOT NULL ORDER BY p.ram")
+    List<Integer> findAllDistinctRamOptions();
+
+    /**
+     * Retrieves a list of all distinct operating systems from products where os is not null.
+     * Helps populate OS filters (e.g., Android, Windows, macOS).
+     *
+     * @return a List of unique OS names as strings
+     */
+    @Query("SELECT DISTINCT p.os FROM Product p WHERE p.os IS NOT NULL")
+    List<String> findAllDistinctOperatingSystems();
+
+    /**
+     * Retrieves a list of all distinct switch types from products where switchType is not null.
+     * Used for keyboard filtering (e.g., Mechanical, Optical).
+     *
+     * @return a List of unique switch types as strings
+     */
+    @Query("SELECT DISTINCT p.switchType FROM Product p WHERE p.switchType IS NOT NULL")
+    List<String> findAllDistinctSwitchTypes();
+
+    /**
+     * Retrieves a list of all distinct backlighting options from products where backlighting is not null.
+     *
+     * @return a List of unique backlighting features (e.g., "RGB", "None")
+     */
+    @Query("SELECT DISTINCT p.backlighting FROM Product p WHERE p.backlighting IS NOT NULL")
+    List<String> findAllDistinctBacklightingOptions();
+
+    /**
+     * Retrieves a list of all distinct DPI values from products where dpi is not null.
+     * Useful for mouse filtering.
+     *
+     * @return a List of unique DPI values as integers
+     */
+    @Query("SELECT DISTINCT p.dpi FROM Product p WHERE p.dpi IS NOT NULL ORDER BY p.dpi DESC")
+    List<Integer> findAllDistinctDpiOptions();
+
+    /**
+     * Retrieves a list of all distinct polling rates from products where pollingRate is not null.
+     * Common in gaming peripherals.
+     *
+     * @return a List of unique polling rates (Hz)
+     */
+    @Query("SELECT DISTINCT p.pollingRate FROM Product p WHERE p.pollingRate IS NOT NULL")
+    List<Integer> findAllDistinctPollingRates();
+
+    // ========================================================================
+    // === CATEGORY & PAGINATION
+    // ========================================================================
 
     /**
      * Retrieves a paginated list of products belonging to a specific category.
@@ -63,6 +130,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return a Page of Product entities in the specified category
      */
     Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
+
+    // ========================================================================
+    // === UTILITY QUERIES
+    // ========================================================================
 
     /**
      * Finds all products created within a specified date range.

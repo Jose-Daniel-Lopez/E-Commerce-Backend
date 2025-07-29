@@ -21,7 +21,7 @@ import java.util.Optional;
  * <ul>
  *   <li>Retrieving products by category, brand, or recency</li>
  *   <li>Providing lightweight projections (DTOs) for performance</li>
- *   <li>Supplying static filter options (e.g., memory sizes)</li>
+ *   <li>Supplying static filter options (e.g., RAM, storage, OS)</li>
  *   <li>Supporting paginated and searchable product listings</li>
  * </ul>
  * <p>
@@ -64,7 +64,7 @@ public class ProductService {
      * Retrieves a product by its unique identifier.
      *
      * @param id the ID of the product to retrieve
-     * @return the found {@link Product}, or empty {@link Optional} if not found
+     * @return the found {@link Product}, or null if not found
      */
     public Product getProductById(Long id) {
         return productRepo.findById(id).orElse(null);
@@ -117,23 +117,71 @@ public class ProductService {
         return productRepo.findAllDistinctBrands();
     }
 
+    // === NEW FILTER OPTIONS (Modern Schema) ===
+
     /**
-     * Predefined list of standard memory capacities used across the application.
-     * These values are static and not sourced from the database.
-     * Can be externalized to config files if needed in the future.
+     * Returns a list of supported storage options for UI filters.
+     *
+     * @return immutable list of common storage sizes
      */
-    private static final List<String> MEMORY_OPTIONS = List.of(
-            "32GB", "64GB", "128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"
+    public List<String> getAllStorageOptions() {
+        return productRepo.findAllDistinctStorageOptions();
+    }
+
+    /**
+     * Returns a list of supported RAM capacities (in GB).
+     *
+     * @return immutable list of RAM sizes
+     */
+    public List<Integer> getAllRamOptions() {
+        return productRepo.findAllDistinctRamOptions();
+    }
+
+    /**
+     * Returns a list of common operating systems for filtering.
+     *
+     * @return immutable list of OS names
+     */
+    public List<String> getOperatingSystems() {
+        return productRepo.findAllDistinctOperatingSystems();
+    }
+
+    /**
+     * Predefined list of keyboard switch types.
+     */
+    private static final List<String> SWITCH_TYPES = List.of(
+            "Mechanical - Red Cherry MX",
+            "Mechanical - Blue Kailh",
+            "Optical",
+            "Scissor",
+            "Membrane",
+            "Tactile",
+            "Linear"
     );
 
     /**
-     * Returns a list of supported memory options for use in filters or forms.
-     * These are static values and not dynamically derived from product data.
+     * Returns a list of supported switch types for mechanical keyboards.
      *
-     * @return an immutable list of standard memory capacity strings (e.g., "128GB", "1TB")
+     * @return immutable list of switch type strings
      */
-    public List<String> getAllMemoryOptions() {
-        return MEMORY_OPTIONS;
+    public List<String> getSwitchTypes() {
+        return SWITCH_TYPES;
+    }
+
+    /**
+     * Predefined list of backlighting options.
+     */
+    private static final List<String> BACKLIGHTING_OPTIONS = List.of(
+            "RGB", "Single-color", "White LED", "Per-key RGB", "None"
+    );
+
+    /**
+     * Returns a list of backlighting features for input devices.
+     *
+     * @return immutable list of backlighting options
+     */
+    public List<String> getBacklightingOptions() {
+        return BACKLIGHTING_OPTIONS;
     }
 
     // === Future Method Suggestions ===

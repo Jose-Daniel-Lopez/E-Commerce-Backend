@@ -54,39 +54,41 @@ public class DataSeeder implements CommandLineRunner {
      */
     private static Map<String, List<String>> createCategoryBrandsMap() {
         Map<String, List<String>> map = new HashMap<>();
+
+        // === MOBILE & COMPUTE ===
         map.put("Smartphones", Arrays.asList(
-                "Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "Motorola", "Oppo", "Realme", "Asus", "Nokia"
+                "Apple", "Samsung", "Google", "Xiaomi", "OnePlus", "Sony", "Motorola", "Oppo", "Realme", "Asus", "Nokia"
         ));
-        map.put("Computers", Arrays.asList(
-                "Apple", "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Asus", "Alienware"
-        ));
+
         map.put("Tablets", Arrays.asList(
                 "Apple", "Samsung", "Microsoft", "Lenovo", "Xiaomi", "Huawei"
         ));
-        map.put("Smartwatches", Arrays.asList(
-                "Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "Asus"
+
+        map.put("Laptops", Arrays.asList(
+                "Apple", "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Asus", "Alienware", "LG"
         ));
-        map.put("Headphones", Arrays.asList(
-                "Apple", "Samsung", "Sony", "Logitech", "Corsair", "SteelSeries", "HyperX", "Razer"
+
+        map.put("Handhelds", Arrays.asList(
+                "ASUS", "AYANEO", "GPD", "Logitech", "Razer", "Steam", "Lenovo"
         ));
-        List<String> peripheralBrands = Arrays.asList(
-                "Logitech", "Corsair", "Razer", "SteelSeries", "HyperX", "Asus", "Dell", "HP", "Lenovo", "Microsoft"
-        );
-        map.put("Keyboards", peripheralBrands);
-        map.put("Mice", peripheralBrands);
-        map.put("Cameras", Arrays.asList("Sony", "Logitech", "Razer"));
-        map.put("Audio", Arrays.asList(
-                "Apple", "Google", "Sony", "LG", "Samsung", "Logitech", "Razer"
+
+        // === INPUT & CONTROL ===
+        map.put("Keyboards", Arrays.asList(
+                "Logitech", "Corsair", "Razer", "SteelSeries", "HyperX", "Ducky", "Keychron", "Epomaker", "Kinesis", "Microsoft", "Apple", "Das Keyboard"
         ));
-        map.put("Gaming", Arrays.asList("Sony", "Microsoft"));
-        map.put("Smart Home", Arrays.asList(
-                "Google", "Apple", "Samsung", "Xiaomi", "LG", "TCL"
+
+        map.put("Mice", Arrays.asList(
+                "Logitech", "Razer", "Corsair", "SteelSeries", "Microsoft", "Apple", "Finalmouse", "Glorious", "Zowie"
         ));
-        map.put("Accessories", Arrays.asList(
-                "Apple", "Samsung", "Xiaomi", "Google", "Huawei", "OnePlus", "Sony", "LG", "Motorola", "Oppo",
-                "Vivo", "Realme", "Honor", "Nothing", "Asus", "Nokia", "TCL", "Fairphone", "RedMagic", "Dell",
-                "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Logitech", "Corsair", "SteelSeries", "HyperX", "Alienware"
+
+        map.put("Controllers", Arrays.asList(
+                "Sony", "Microsoft", "Nintendo", "8BitDo", "Razer", "Logitech", "Astro", "DualShock", "Scuf", "PowerA"
         ));
+
+        map.put("Ergonomic Devices", Arrays.asList(
+                "Logitech", "Microsoft", "Kinesis", "ErgoDox", "Perixx", "Vertic", "Evolution", "3M"
+        ));
+
         return map;
     }
 
@@ -97,25 +99,24 @@ public class DataSeeder implements CommandLineRunner {
     private static Map<String, List<String>> createBrandNamingRules() {
         Map<String, List<String>> rules = new HashMap<>();
 
+        // === MOBILE & COMPUTE ===
         rules.put("Apple", Arrays.asList(
                 "iPhone %s", "iPhone %s Pro", "iPhone %s Pro Max",
                 "MacBook %s", "MacBook %s Air", "MacBook %s Pro",
-                "iPad %s", "iPad %s Pro", "iPad %s Air", "iPad %s Mini",
-                "Apple Watch %s", "Apple Watch %s Ultra",
-                "AirPods %s", "AirPods %s Pro", "AirPods %s Max"
+                "iPad %s", "iPad %s Pro", "iPad %s Air", "iPad %s Mini"
         ));
 
         rules.put("Samsung", Arrays.asList(
                 "Galaxy S%s", "Galaxy S%s Ultra", "Galaxy S%s+", "Galaxy Z %s",
-                "Galaxy Note %s", "Galaxy Tab S%s", "Galaxy Buds %s", "Galaxy Watch %s"
+                "Galaxy Note %s", "Galaxy Tab S%s"
         ));
 
         rules.put("Google", Arrays.asList(
-                "Pixel %s", "Pixel %s Pro", "Pixel Tablet %s", "Pixel Watch %s", "Pixel Buds %s"
+                "Pixel %s", "Pixel %s Pro", "Pixel Tablet %s"
         ));
 
         rules.put("Sony", Arrays.asList(
-                "Xperia %s", "Xperia %s Pro", "WH-%s", "WH-%sXM%s", "Alpha %s", "Cyber-shot %s"
+                "Xperia %s", "Xperia %s Pro"
         ));
 
         rules.put("Xiaomi", Arrays.asList(
@@ -127,7 +128,7 @@ public class DataSeeder implements CommandLineRunner {
         ));
 
         rules.put("Microsoft", Arrays.asList(
-                "Surface %s", "Surface Pro %s", "Surface Laptop %s", "Surface Book %s", "Xbox %s"
+                "Surface %s", "Surface Pro %s", "Surface Laptop %s", "Surface Book %s"
         ));
 
         rules.put("Dell", Arrays.asList(
@@ -142,16 +143,110 @@ public class DataSeeder implements CommandLineRunner {
                 "ThinkPad %s", "Legion %s", "IdeaPad %s", "Yoga %s", "Flex %s"
         ));
 
-        rules.put("Logitech", Arrays.asList(
-                "MX %s", "G %s", "Z %s", "Webcam %s", "Speakers %s"
+        rules.put("ASUS", Arrays.asList(
+                "ROG Zephyrus %s", "ROG Flow %s", "TUF Gaming %s", "Vivobook %s", "Zenbook %s"
+        ));
+
+        rules.put("Acer", Arrays.asList(
+                "Predator %s", "Nitro %s", "Swift %s", "Aspire %s"
+        ));
+
+        rules.put("MSI", Arrays.asList(
+                "GS %s", "GP %s", "Stealth %s", "Alpha %s"
         ));
 
         rules.put("Razer", Arrays.asList(
-                "Blade %s", "DeathAdder %s", "BlackWidow %s", "Kraken %s", "Nari %s"
+                "Blade %s", "Blade Stealth %s", "Blade Pro %s"
+        ));
+
+        rules.put("Alienware", Arrays.asList(
+                "m15 R%s", "m16 R%s", "x14 R%s", "x16 R%s"
+        ));
+
+        rules.put("LG", Arrays.asList(
+                "Gram %s", "UltraFine %s", "UltraGear %s"
+        ));
+
+        // === HANDHELDS ===
+        rules.put("AYANEO", Arrays.asList(
+                "AYANEO %s", "AYANEO %s Pro", "AYANEO Geek %s", "AYANEO Slide %s"
+        ));
+
+        rules.put("GPD", Arrays.asList(
+                "GPD Win %s", "GPD Pocket %s", "GPD MicroPC %s"
+        ));
+
+        rules.put("Steam", Arrays.asList(
+                "Steam Deck %s", "Steam Deck OLED %s"
+        ));
+
+        // === INPUT & CONTROL ===
+        rules.put("Logitech", Arrays.asList(
+                "MX %s", "G %s", "Z %s", "PRO %s", "Craft %s", "POP %s"
+        ));
+
+        rules.put("Razer", Arrays.asList(
+                "DeathAdder %s", "Viper %s", "Basilisk %s", "Naga %s",
+                "BlackWidow %s", "Huntsman %s", "Ornata %s"
+        ));
+
+        rules.put("Corsair", Arrays.asList(
+                "K%s", "K95 %s", "Stratix %s",
+                "M%s", "Dark Core %s", "Sabre %s"
+        ));
+
+        rules.put("SteelSeries", Arrays.asList(
+                "Apex %s", "Apex Pro %s", "Apex 7 %s",
+                "Rival %s", "Sensei %s", "Aerox %s"
+        ));
+
+        rules.put("HyperX", Arrays.asList(
+                "Alloy %s", "Pulsefire %s", "Cloud %s"
+        ));
+
+        rules.put("Keychron", Arrays.asList(
+                "K%s", "Q%s", "C%s", "V%s"
+        ));
+
+        rules.put("Ducky", Arrays.asList(
+                "Shine %s", "One %s", "King %s"
+        ));
+
+        rules.put("Kinesis", Arrays.asList(
+                "Freestyle %s", "Advantage %s", "Ergo %s"
+        ));
+
+        rules.put("Epomaker", Arrays.asList(
+                "TH80 %s", "ERGO42 %s", "AJ60 %s"
+        ));
+
+        rules.put("Microsoft", Arrays.asList(
+                "Sculpt %s", "Ergonomic Keyboard %s", "Surface Mouse %s", "Arc Mouse %s"
+        ));
+
+        rules.put("Apple", Arrays.asList(
+                "Magic Keyboard %s", "Magic Mouse %s"
+        ));
+
+        rules.put("8BitDo", Arrays.asList(
+                "Ultimate %s", "Pro %s", "Zero %s", "SN30 %s"
+        ));
+
+        rules.put("Sony", Arrays.asList(
+                "DualShock %s", "DualSense %s"
+        ));
+
+        rules.put("Microsoft", Arrays.asList(
+                "Xbox Wireless Controller %s", "Elite %s", "Adaptive Controller"
         ));
 
         // Fallback for any brand not explicitly listed
-        rules.put("DEFAULT", Arrays.asList("%s %s", "%s %s Edition", "%s Model %s"));
+        rules.put("DEFAULT", Arrays.asList(
+                "%s %s",
+                "%s %s Edition",
+                "%s Model %s",
+                "%s Series %s"
+        ));
 
         return rules;
     }
@@ -161,15 +256,27 @@ public class DataSeeder implements CommandLineRunner {
      */
     private static boolean isValidBrandCategory(String brand, String category) {
         Map<String, List<String>> validCategories = new HashMap<>();
-        validCategories.put("Apple", Arrays.asList("Smartphones", "Computers", "Tablets", "Smartwatches", "Audio", "Accessories"));
-        validCategories.put("Samsung", Arrays.asList("Smartphones", "Tablets", "Smartwatches", "TVs", "Cameras", "Audio", "Smart Home"));
-        validCategories.put("Google", Arrays.asList("Smartphones", "Tablets", "Smartwatches", "Smart Home", "Audio"));
-        validCategories.put("Sony", Arrays.asList("Cameras", "Audio", "Smartphones", "Computers", "Gaming"));
-        validCategories.put("Microsoft", Arrays.asList("Computers", "Tablets", "Gaming", "Accessories"));
-        validCategories.put("Xiaomi", Arrays.asList("Smartphones", "Smart Home", "Accessories", "Smartwatches"));
-        validCategories.put("OnePlus", Arrays.asList("Smartphones", "Accessories"));
-        validCategories.put("Logitech", Arrays.asList("Mice", "Keyboards", "Cameras", "Headphones", "Audio"));
-        validCategories.put("Razer", Arrays.asList("Mice", "Keyboards", "Headphones", "Computers"));
+
+        validCategories.put("Apple", Arrays.asList("Smartphones", "Tablets", "Laptops", "Keyboards", "Mice"));
+        validCategories.put("Samsung", Arrays.asList("Smartphones", "Tablets"));
+        validCategories.put("Google", Arrays.asList("Smartphones", "Tablets"));
+        validCategories.put("Sony", Arrays.asList("Smartphones", "Laptops", "Controllers"));
+        validCategories.put("Microsoft", Arrays.asList("Laptops", "Tablets", "Keyboards", "Mice", "Controllers"));
+        validCategories.put("Xiaomi", Arrays.asList("Smartphones", "Tablets"));
+        validCategories.put("ASUS", Arrays.asList("Laptops", "Handhelds"));
+        validCategories.put("Razer", Arrays.asList("Laptops", "Handhelds", "Keyboards", "Mice", "Controllers"));
+        validCategories.put("Logitech", Arrays.asList("Handhelds", "Keyboards", "Mice", "Controllers"));
+        validCategories.put("Corsair", Arrays.asList("Keyboards", "Mice"));
+        validCategories.put("SteelSeries", Arrays.asList("Keyboards", "Mice"));
+        validCategories.put("HyperX", Arrays.asList("Keyboards", "Mice"));
+        validCategories.put("Ducky", Arrays.asList("Keyboards"));
+        validCategories.put("Keychron", Arrays.asList("Keyboards"));
+        validCategories.put("Kinesis", Arrays.asList("Keyboards", "Ergonomic Devices"));
+        validCategories.put("Epomaker", Arrays.asList("Keyboards"));
+        validCategories.put("8BitDo", Arrays.asList("Controllers"));
+        validCategories.put("AYANEO", Arrays.asList("Handhelds"));
+        validCategories.put("GPD", Arrays.asList("Handhelds"));
+        validCategories.put("Steam", Arrays.asList("Handhelds"));
 
         List<String> allowed = validCategories.getOrDefault(brand, null);
         if (allowed == null) return true;
@@ -320,48 +427,67 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedCategories() {
         if (categoryRepo.count() > 0) return;
-        System.out.println("Seeding categories...");
+        System.out.println("Seeding updated categories for Mobile & Compute and Input & Control...");
+
         List<String> categoryNames = Arrays.asList(
-                "Smartphones", "Smartwatches", "Cameras", "Headphones", "Computers",
-                "Keyboards", "Mice", "Gaming", "Tablets", "Smart Home", "Audio", "Accessories"
+                // === MOBILE & COMPUTE ===
+                "Smartphones",
+                "Tablets",
+                "Laptops",
+                "Handhelds",          // e.g., gaming handhelds like Steam Deck
+
+                // === INPUT & CONTROL ===
+                "Keyboards",
+                "Mice",
+                "Controllers",        // e.g., gamepads, joysticks
+                "Ergonomic Devices"   // e.g., vertical mice, split keyboards
         );
+
         List<String> categoryIcons = Arrays.asList(
-                "gi-smartphone", "bi-smartwatch", "bi-camera", "la-headphones-solid",
-                "bi-laptop", "bi-keyboard", "bi-mouse", "gi-console-controller",
-                "co-tablet", "ri-home-wifi-line", "hi-music-note", "md-cable"
+                // MOBILE & COMPUTE
+                "gi-smartphone",      // Smartphones
+                "co-tablet",          // Tablets
+                "bi-laptop",          // Laptops
+                "gi-controller",      // Handhelds
+
+                // INPUT & CONTROL
+                "bi-keyboard",        // Keyboards
+                "bi-mouse",           // Mice
+                "gi-console-controller", // Controllers
+                "ri-hand-peace-line"  // Ergonomic Devices (symbolizing comfort/design)
         );
+
         List<Category> categories = IntStream.range(0, categoryNames.size())
                 .mapToObj(i -> Category.builder()
                         .name(categoryNames.get(i))
                         .icon(categoryIcons.get(i))
                         .build())
                 .collect(Collectors.toList());
+
         categoryRepo.saveAll(categories);
-        System.out.println(categories.size() + " categories created.");
+        System.out.println(categories.size() + " updated categories created.");
     }
 
     /**
      * Seeds realistic products with brand-aligned naming (e.g., iPhone 15 Pro, Galaxy S24).
-     * Eliminates illogical names like "Apple Samsung A50".
+     * Now fully compatible with the new Product entity structure.
+     * No legacy fields are used.
      */
     private void seedProducts() {
         if (productRepo.count() > 0) return;
-        System.out.println("Seeding products with realistic names and attributes...");
+        System.out.println("Seeding products with realistic names and modern attributes...");
         List<Category> categories = categoryRepo.findAll();
         if (categories.isEmpty()) {
             System.out.println("No categories found. Skipping product seeding.");
             return;
         }
-
         Set<String> allBrandsSet = new HashSet<>();
         CATEGORY_BRANDS.values().forEach(allBrandsSet::addAll);
         List<String> allBrands = new ArrayList<>(allBrandsSet);
-
         List<Product> products = new ArrayList<>();
         for (Category category : categories) {
             String categoryName = category.getName();
             List<String> validBrands = CATEGORY_BRANDS.getOrDefault(categoryName, allBrands);
-
             // Filter brands that are valid for this category
             List<String> filteredBrands = validBrands.stream()
                     .filter(brand -> isValidBrandCategory(brand, categoryName))
@@ -370,7 +496,6 @@ public class DataSeeder implements CommandLineRunner {
 
             for (int i = 0; i < NUM_PRODUCTS_PER_CATEGORY; i++) {
                 String brand = filteredBrands.get(random.nextInt(filteredBrands.size()));
-
                 // Use brand-specific naming rules
                 List<String> namingTemplates = BRAND_NAMING_RULES.getOrDefault(brand, BRAND_NAMING_RULES.get("DEFAULT"));
                 String template = namingTemplates.get(random.nextInt(namingTemplates.size()));
@@ -392,66 +517,119 @@ public class DataSeeder implements CommandLineRunner {
                         .totalStock(0)
                         .category(category);
 
-                switch (categoryName) {
-                    case "Smartphones":
-                        String cpu = switch (brand) {
-                            case "Apple" -> faker.options().option("A16 Bionic", "A17 Pro");
-                            case "Google" -> faker.options().option("Tensor G2", "Tensor G3");
-                            case "Samsung" -> faker.options().option("Exynos 2400", "Snapdragon 8 Gen 3 for Galaxy");
-                            default -> faker.options().option("Snapdragon 8 Gen 3", "Dimensity 9300");
-                        };
-                        productBuilder
-                                .cpu(cpu)
-                                .memory(faker.options().option("32GB", "64GB", "128GB", "256GB", "512GB", "1TB", "2TB", "4TB", "8TB"))
-                                .camera(faker.options().option("48MP", "50MP", "200MP"))
-                                .frontCamera(faker.options().option("12MP", "16MP", "32MP"))
-                                .battery(String.valueOf(faker.number().numberBetween(3000, 6000)))
-                                .screenSize(faker.options().option("6.1\"", "6.5\"", "6.7\"", "6.9\""));
-                        break;
-                    case "Computers":
-                        String processor, gpu, os;
-                        if ("Apple".equals(brand)) {
-                            processor = faker.options().option("M2 Pro", "M3", "M3 Pro", "M3 Max");
-                            gpu = "Apple Integrated Graphics";
-                            os = "macOS";
-                        } else {
-                            processor = faker.options().option("Intel Core Ultra 7", "Intel Core Ultra 9", "AMD Ryzen 7", "AMD Ryzen 9");
-                            gpu = faker.options().option("NVIDIA RTX 4070", "AMD Radeon RX 7800M", "Intel Arc Graphics");
-                            os = faker.options().option("Windows 11", "Linux");
-                        }
-                        productBuilder
-                                .processorModel(processor)
-                                .graphicsCard(gpu)
-                                .operatingSystem(os)
-                                .ramCapacity(new Integer[]{16, 32, 64}[random.nextInt(3)])
-                                .storageCapacity(new Integer[]{512, 1024, 2048}[random.nextInt(3)]);
-                        break;
-                    case "Tablets":
-                        String tabletOs = "Apple".equals(brand) ? "iPadOS" :
-                                "Microsoft".equals(brand) ? "Windows 11" : "Android";
-                        productBuilder
-                                .operatingSystem(tabletOs)
-                                .screenSize(faker.options().option("10.2\"", "11\"", "12.9\""))
-                                .storageCapacity(new Integer[]{128, 256, 512}[random.nextInt(3)])
-                                .ramCapacity(new Integer[]{8, 12, 16}[random.nextInt(3)]);
-                        break;
-                    case "Smartwatches":
-                        productBuilder.compatibility("Apple".equals(brand) ? "iOS" : "Android");
-                        break;
-                    case "Gaming":
-                        productBuilder.platform(faker.options().option("PlayStation 5", "Xbox Series X", "PC", "Nintendo Switch"));
-                        break;
-                    case "Accessories":
-                        productBuilder
-                                .material(faker.commerce().material())
-                                .color(faker.color().name());
-                        break;
+                // === MOBILE & COMPUTE CATEGORIES ===
+                if (List.of("Smartphones", "Tablets", "Computers").contains(categoryName)) {
+                    String os = "";
+                    String cpu = "";
+                    Integer ram = null;
+                    String storage = "";
+                    String gpu = "Integrated Graphics";
+                    Integer refreshRate = 60;
+
+                    switch (categoryName) {
+                        case "Smartphones":
+                            os = "Apple".equals(brand) ? "iOS" : "Android";
+                            if ("Apple".equals(brand)) {
+                                cpu = faker.options().option("A16 Bionic", "A17 Pro");
+                            } else if ("Google".equals(brand)) {
+                                cpu = "Google Tensor G3";
+                            } else if ("Samsung".equals(brand)) {
+                                cpu = faker.options().option("Exynos 2400", "Snapdragon 8 Gen 3 for Galaxy");
+                            } else {
+                                cpu = faker.options().option("Snapdragon 8 Gen 3", "Dimensity 9300");
+                            }
+                            Integer[] ramOptions = {8, 12, 16};
+                            ram = ramOptions[random.nextInt(ramOptions.length)];
+                            storage = faker.options().option("128GB", "256GB", "512GB", "1TB");
+                            gpu = faker.options().option("Adreno 750", "Mali-G72", "Apple GPU 6-Core");
+                            Integer[] refreshRateOptions = {60, 90, 120};
+                            refreshRate = refreshRateOptions[random.nextInt(refreshRateOptions.length)];
+                            break;
+
+                        case "Tablets":
+                            os = "Apple".equals(brand) ? "iPadOS" :
+                                    "Microsoft".equals(brand) ? "Windows 11" : "Android";
+                            cpu = faker.options().option("Apple M2", "Snapdragon 8 Gen 3", "MediaTek Kompanio");
+                            Integer[] tabletRamOptions = {8, 12, 16};
+                            ram = tabletRamOptions[random.nextInt(tabletRamOptions.length)];
+                            storage = faker.options().option("64GB eMMC", "128GB SSD", "256GB NVMe", "512GB UFS");
+                            gpu = faker.options().option("Apple M2 GPU", "Adreno 780", "Mali-G715");
+                            Integer[] tabletRefreshRateOptions = {60, 90, 120};
+                            refreshRate = tabletRefreshRateOptions[random.nextInt(tabletRefreshRateOptions.length)];
+                            break;
+
+                        case "Computers":
+                            os = "Apple".equals(brand) ? "macOS" : faker.options().option("Windows 11", "Linux");
+                            if ("Apple".equals(brand)) {
+                                cpu = faker.options().option("M2 Pro", "M3", "M3 Pro", "M3 Max");
+                                gpu = "Apple Integrated Graphics";
+                            } else {
+                                cpu = faker.options().option("Intel Core Ultra 7", "AMD Ryzen 7", "Intel Core i7");
+                                gpu = faker.options().option("NVIDIA RTX 4070", "AMD Radeon RX 7800M", "Intel Arc Graphics");
+                            }
+                            Integer[] computerRamOptions = {16, 32, 64};
+                            ram = computerRamOptions[random.nextInt(computerRamOptions.length)];
+                            storage = faker.options().option("512GB SSD", "1TB NVMe", "2TB SSD");
+                            refreshRate = 60; // desktops usually 60Hz
+                            break;
+                    }
+
+                    // Set Mobile & Compute fields
+                    productBuilder
+                            .cpu(cpu)
+                            .ram(ram)
+                            .storage(storage)
+                            .gpu(gpu)
+                            .os(os)
+                            .screenSize(faker.options().option("6.1\"", "6.7\"", "10.5\"", "13.3\"", "15.6\"", "17.3\""))
+                            .refreshRate(refreshRate)
+                            .camera(faker.options().option("12MP", "48MP", "50MP", "200MP"))
+                            .frontCamera(faker.options().option("12MP", "16MP", "32MP"))
+                            .battery(String.valueOf(faker.number().numberBetween(3000, 6000)) + "mAh");
                 }
+
+                // === INPUT & CONTROL CATEGORIES ===
+                else if (List.of("Keyboards", "Mice").contains(categoryName)) {
+                    if ("Keyboards".equals(categoryName)) {
+                        String switchType = faker.options().option("Mechanical - Red Cherry MX", "Mechanical - Blue Kailh", "Optical", "Scissor");
+                        String backlighting = faker.options().option("RGB", "White LED", "Single-color", "None");
+
+                        Integer[] keyboardDpiOptions = {800, 1600, 3200};
+                        Integer[] keyboardPollingRateOptions = {125, 500, 1000};
+
+                        productBuilder
+                                .switchType(switchType)
+                                .backlighting(backlighting)
+                                .ergonomic(faker.bool().bool())
+                                .programmableButtons(faker.bool().bool())
+                                .dpi(keyboardDpiOptions[random.nextInt(keyboardDpiOptions.length)])
+                                .pollingRate(keyboardPollingRateOptions[random.nextInt(keyboardPollingRateOptions.length)])
+                                .batteryLife(faker.options().option("40 hours", "100 hours", "200 hours"));
+                    }
+
+                    if ("Mice".equals(categoryName)) {
+                        Integer[] mouseDpiOptions = {800, 1600, 2400, 3200, 5000};
+                        Integer[] mousePollingRateOptions = {125, 250, 500, 1000};
+
+                        productBuilder
+                                .dpi(mouseDpiOptions[random.nextInt(mouseDpiOptions.length)])
+                                .pollingRate(mousePollingRateOptions[random.nextInt(mousePollingRateOptions.length)])
+                                .ergonomic(faker.bool().bool())
+                                .programmableButtons(faker.bool().bool())
+                                .batteryLife(faker.options().option("30 days", "60 days", "100 hours"));
+                    }
+                }
+
+                // === OTHER CATEGORIES (no special attributes) ===
+                else {
+                    // No special attributes for other categories in the current Product entity
+                }
+
                 products.add(productBuilder.build());
             }
         }
         productRepo.saveAll(products);
-        System.out.println(products.size() + " realistic products created.");
+        System.out.println(products.size() + " realistic products created with updated schema.");
     }
 
     /**
@@ -733,3 +911,4 @@ public class DataSeeder implements CommandLineRunner {
         return copy.subList(0, size);
     }
 }
+
