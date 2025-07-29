@@ -593,7 +593,6 @@ public class DataSeeder implements CommandLineRunner {
                         productBuilder
                                 .switchType(switchType)
                                 .backlighting(backlighting)
-                                .ergonomic(faker.bool().bool())
                                 .programmableButtons(faker.bool().bool())
                                 .dpi(keyboardDpiOptions[random.nextInt(keyboardDpiOptions.length)])
                                 .pollingRate(keyboardPollingRateOptions[random.nextInt(keyboardPollingRateOptions.length)])
@@ -607,7 +606,6 @@ public class DataSeeder implements CommandLineRunner {
                         productBuilder
                                 .dpi(mouseDpiOptions[random.nextInt(mouseDpiOptions.length)])
                                 .pollingRate(mousePollingRateOptions[random.nextInt(mousePollingRateOptions.length)])
-                                .ergonomic(faker.bool().bool())
                                 .programmableButtons(faker.bool().bool())
                                 .batteryLife(faker.options().option("30 days", "60 days", "100 hours"));
                     }

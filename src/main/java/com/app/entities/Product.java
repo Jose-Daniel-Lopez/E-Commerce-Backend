@@ -255,9 +255,4 @@ public class Product {
      */
     @Column(name = "battery_life")
     private String batteryLife;
-
-    /**
-     * Whether the device has an ergonomic design (e.g., split, curved, vertical).
-     */
-    private Boolean ergonomic;
 }

@@ -226,6 +226,5 @@ public class ProductRepresentation extends RepresentationModel<ProductRepresenta
         this.backlighting = product.getBacklighting();
         this.programmableButtons = product.getProgrammableButtons();
         this.batteryLife = product.getBatteryLife();
-        this.ergonomic = product.getErgonomic();
     }
 }
