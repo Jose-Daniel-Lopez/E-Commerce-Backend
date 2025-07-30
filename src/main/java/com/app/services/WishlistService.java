@@ -55,4 +55,13 @@ public class WishlistService {
         wishlist.getProducts().add(product);
         return wishlistRepo.save(wishlist);
     }
+
+    public Wishlist removeProductFromWishlist(Long wishlistId, Long productId) {
+        Wishlist wishlist = wishlistRepo.findById(wishlistId)
+                .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        wishlist.getProducts().remove(product);
+        return wishlistRepo.save(wishlist);
+    }
 }
