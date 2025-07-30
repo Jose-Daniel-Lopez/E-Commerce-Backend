@@ -1,5 +1,8 @@
 package com.app.services;
 
+import com.app.entities.Product;
+import com.app.entities.Wishlist;
+import com.app.repositories.ProductRepository;
 import com.app.repositories.WishlistRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,25 +33,26 @@ public class WishlistService {
 
     // Repository for performing CRUD operations on wishlist entities
     private final WishlistRepository wishlistRepo;
+    private final ProductRepository productRepo;
 
     /**
-     * Constructs a new WishlistService with the required repository dependency.
+     * Constructs a new WishlistService with the required repository dependencies.
      *
      * @param wishlistRepo the repository used to interact with wishlist data; must not be null
+     * @param productRepo  the repository used to interact with product data; must not be null
      */
     @Autowired
-    public WishlistService(WishlistRepository wishlistRepo) {
+    public WishlistService(WishlistRepository wishlistRepo, ProductRepository productRepo) {
         this.wishlistRepo = wishlistRepo;
+        this.productRepo = productRepo;
     }
 
-    // Suggested future methods:
-    //
-    // public Wishlist createWishlist(Long userId) { ... }
-    // public Wishlist addItemToWishlist(Long userId, Long productId) { ... }
-    // public void removeItemFromWishlist(Long userId, Long productId) { ... }
-    // public List<WishlistItem> getWishlistItemsByUserId(Long userId) { ... }
-    // public boolean existsByUserIdAndProductId(Long userId, Long productId) { ... }
-    // public void clearWishlist(Long userId) { ... }
-    // public Page<WishlistItem> getWishlistItems(Long userId, Pageable pageable) { ... }
-    // public boolean isProductInWishlist(Long userId, Long productId) { ... }
+    public Wishlist addProductToWishlist(Long wishlistId, Long productId) {
+        Wishlist wishlist = wishlistRepo.findById(wishlistId)
+                .orElseThrow(() -> new IllegalArgumentException("Wishlist not found"));
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        wishlist.getProducts().add(product);
+        return wishlistRepo.save(wishlist);
+    }
 }
