@@ -114,7 +114,7 @@ public class WebSecurityConfig {
 
                         // Authenticated users only
                         .requestMatchers("/api/users/me").authenticated()
-                        .requestMatchers("/api/cart/**", "/api/orders/**").authenticated()
+                        .requestMatchers("/api/cart/**", "/api/orders/**").authenticated() // change to authenticated later
 
                         // All other requests are allowed (fallback)
                         .anyRequest().permitAll()
