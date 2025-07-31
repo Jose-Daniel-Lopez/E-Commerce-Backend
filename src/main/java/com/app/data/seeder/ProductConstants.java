@@ -5,11 +5,46 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility class containing constants and rules for product categorization and naming.
+ * <p>
+ * This class provides:
+ * <ul>
+ *   <li>Mapping of product categories to supported brands</li>
+ *   <li>Brand-specific product naming conventions</li>
+ *   <li>Methods to infer product category from name</li>
+ *   <li>Validation for brand-category compatibility</li>
+ * </ul>
+ * <p>
+ * All fields and methods are static. This class is not meant to be instantiated.
+ */
 public class ProductConstants {
 
+    /**
+     * Maps each product category to the list of brands that belong to it.
+     * Used to determine which brands are valid within a given category.
+     */
     public static final Map<String, List<String>> CATEGORY_BRANDS = createCategoryBrandsMap();
+
+    /**
+     * Maps each brand to a list of example product names or naming patterns.
+     * Used for generating realistic product titles during data seeding.
+     * Includes full product names for major brands and format templates in "DEFAULT".
+     */
     public static final Map<String, List<String>> BRAND_NAMING_RULES = createBrandNamingRules();
 
+    /**
+     * Private constructor to prevent instantiation of utility class.
+     */
+    private ProductConstants() {
+        throw new AssertionError("This class should not be instantiated.");
+    }
+
+    /**
+     * Creates and returns a map of product categories to their associated brands.
+     *
+     * @return a map where the key is the category name and the value is a list of brand names
+     */
     private static Map<String, List<String>> createCategoryBrandsMap() {
         Map<String, List<String>> map = new HashMap<>();
 
@@ -17,15 +52,12 @@ public class ProductConstants {
         map.put("Smartphones", Arrays.asList(
                 "Apple", "Samsung", "Google", "Xiaomi", "OnePlus", "Sony", "Motorola", "Oppo", "Realme", "Asus", "Nokia"
         ));
-
         map.put("Tablets", Arrays.asList(
                 "Apple", "Samsung", "Microsoft", "Lenovo", "Xiaomi", "Huawei"
         ));
-
         map.put("Laptops", Arrays.asList(
                 "Apple", "Dell", "HP", "Lenovo", "Microsoft", "Acer", "MSI", "Razer", "Asus", "Alienware", "LG"
         ));
-
         map.put("Handhelds", Arrays.asList(
                 "ASUS", "AYANEO", "GPD", "Logitech", "Razer", "Steam", "Lenovo"
         ));
@@ -34,11 +66,9 @@ public class ProductConstants {
         map.put("Keyboards", Arrays.asList(
                 "Logitech", "Corsair", "Razer", "SteelSeries", "HyperX", "Ducky", "Keychron", "Epomaker", "Kinesis", "Microsoft", "Apple", "Das Keyboard"
         ));
-
         map.put("Mice", Arrays.asList(
                 "Logitech", "Razer", "Corsair", "SteelSeries", "Microsoft", "Apple", "Finalmouse", "Glorious", "Zowie"
         ));
-
         map.put("Controllers", Arrays.asList(
                 "Sony", "Microsoft", "Nintendo", "8BitDo", "Razer", "Logitech", "Astro", "DualShock", "Scuf", "PowerA"
         ));
@@ -46,6 +76,13 @@ public class ProductConstants {
         return map;
     }
 
+    /**
+     * Creates and returns a map of brands to their common product naming patterns.
+     * These names are representative examples used for generating realistic product data.
+     * The "DEFAULT" key contains format strings for brands without predefined names.
+     *
+     * @return a map where the key is the brand name and the value is a list of sample product names or templates
+     */
     private static Map<String, List<String>> createBrandNamingRules() {
         Map<String, List<String>> rules = new HashMap<>();
 
@@ -62,7 +99,6 @@ public class ProductConstants {
                 "iPad Air (5th generation)",
                 "iPad Pro 11-inch (4th generation)", "iPad Pro 12.9-inch (6th generation)"
         ));
-
         rules.put("Samsung", Arrays.asList(
                 "Galaxy S24", "Galaxy S24+", "Galaxy S24 Ultra",
                 "Galaxy S23", "Galaxy S23+", "Galaxy S23 Ultra", "Galaxy S23 FE",
@@ -70,28 +106,24 @@ public class ProductConstants {
                 "Galaxy A54 5G", "Galaxy A34 5G",
                 "Galaxy Tab S9", "Galaxy Tab S9+", "Galaxy Tab S9 Ultra", "Galaxy Tab S9 FE"
         ));
-
         rules.put("Google", Arrays.asList(
                 "Pixel 8", "Pixel 8 Pro",
                 "Pixel 7", "Pixel 7 Pro", "Pixel 7a",
                 "Pixel Fold",
                 "Pixel Tablet"
         ));
-
         rules.put("Xiaomi", Arrays.asList(
                 "Xiaomi 14", "Xiaomi 14 Pro", "Xiaomi 14 Ultra",
                 "Xiaomi 13", "Xiaomi 13 Pro", "Xiaomi 13 Ultra", "Xiaomi 13T",
                 "Redmi Note 13 Pro", "Redmi Note 12",
                 "Poco F5 Pro", "Poco X6 Pro"
         ));
-
         rules.put("OnePlus", Arrays.asList(
                 "OnePlus 12", "OnePlus 12R",
                 "OnePlus 11",
                 "OnePlus Open",
                 "OnePlus Nord 3", "OnePlus Nord CE 3 Lite"
         ));
-
         rules.put("Microsoft", Arrays.asList(
                 "Surface Pro 9", "Surface Pro 10 for Business",
                 "Surface Laptop 5", "Surface Laptop Studio 2", "Surface Laptop Go 3",
@@ -99,14 +131,12 @@ public class ProductConstants {
                 "Xbox Wireless Controller", "Xbox Elite Wireless Controller Series 2", "Xbox Adaptive Controller",
                 "Microsoft Sculpt Ergonomic Desktop", "Microsoft Ergonomic Keyboard", "Microsoft Surface Mouse", "Microsoft Arc Mouse"
         ));
-
         rules.put("Dell", Arrays.asList(
                 "XPS 13", "XPS 14", "XPS 15", "XPS 16", "XPS 17",
                 "Inspiron 15", "Inspiron 16",
                 "Latitude 7440", "Latitude 9440",
                 "Alienware m16", "Alienware m18", "Alienware x16"
         ));
-
         rules.put("HP", Arrays.asList(
                 "Spectre x360 14", "Spectre x360 16",
                 "Envy x360 15",
@@ -114,7 +144,6 @@ public class ProductConstants {
                 "Omen 16", "Omen 17",
                 "EliteBook 840 G10"
         ));
-
         rules.put("Lenovo", Arrays.asList(
                 "ThinkPad X1 Carbon Gen 11", "ThinkPad X1 Yoga Gen 8",
                 "Legion Pro 7i Gen 8", "Legion Slim 5 Gen 8",
@@ -122,7 +151,6 @@ public class ProductConstants {
                 "Yoga 9i 2-in-1 (14″, Gen 8)", "Yoga 7i (16″, Gen 8)",
                 "Legion Go"
         ));
-
         rules.put("ASUS", Arrays.asList(
                 "ROG Zephyrus G14", "ROG Zephyrus G16",
                 "ROG Flow X13", "ROG Flow Z13",
@@ -131,31 +159,26 @@ public class ProductConstants {
                 "Zenbook 14 OLED", "Zenbook Pro Duo 14 OLED",
                 "ROG Ally"
         ));
-
         rules.put("Acer", Arrays.asList(
                 "Predator Helios 16", "Predator Helios Neo 16",
                 "Nitro 17", "Nitro V 15",
                 "Swift Go 14", "Swift X 14",
                 "Aspire 5", "Aspire 7"
         ));
-
         rules.put("MSI", Arrays.asList(
                 "Titan GT77 HX", "Raider GE78 HX",
                 "Stealth 16 Studio", "Stealth 17 Studio",
                 "Cyborg 15", "Thin GF63"
         ));
-
         rules.put("Razer", Arrays.asList(
                 "Blade 14", "Blade 15", "Blade 16", "Blade 18",
                 "DeathAdder V3 Pro", "Viper V2 Pro", "Basilisk V3 Pro", "Naga V2 Pro",
                 "BlackWidow V4 Pro", "Huntsman V3 Pro", "Ornata V3",
                 "Wolverine V2 Chroma", "Kishi V2 Pro"
         ));
-
         rules.put("Alienware", Arrays.asList(
                 "m16 R2", "m18 R2", "x16 R2"
         ));
-
         rules.put("LG", Arrays.asList(
                 "Gram 14", "Gram 16", "Gram 17", "Gram SuperSlim",
                 "UltraGear 27GR95QE-B", "UltraGear 32GS95UE-B"
@@ -165,11 +188,9 @@ public class ProductConstants {
         rules.put("AYANEO", Arrays.asList(
                 "AYANEO 2S", "AYANEO GEEK 1S", "AYANEO KUN", "AYANEO SLIDE"
         ));
-
         rules.put("GPD", Arrays.asList(
                 "GPD WIN 4", "GPD WIN Max 2", "GPD Pocket 3"
         ));
-
         rules.put("Steam", Arrays.asList(
                 "Steam Deck LCD 64GB", "Steam Deck LCD 512GB", "Steam Deck OLED 512GB", "Steam Deck OLED 1TB"
         ));
@@ -180,48 +201,40 @@ public class ProductConstants {
                 "MX Keys S", "MX Mechanical", "Wave Keys", "G915 TKL", "PRO X TKL LIGHTSPEED",
                 "G Cloud Gaming Handheld"
         ));
-
         rules.put("Corsair", Arrays.asList(
                 "K100 AIR Wireless", "K70 MAX", "K65 PRO MINI",
                 "M75 AIR", "DARKSTAR WIRELESS", "SCIMITAR ELITE WIRELESS"
         ));
-
         rules.put("SteelSeries", Arrays.asList(
                 "Apex Pro TKL", "Apex 7 TKL",
                 "Aerox 9 Wireless", "Rival 5", "Sensei Ten"
         ));
-
         rules.put("HyperX", Arrays.asList(
                 "Alloy Origins", "Alloy Elite 2",
                 "Pulsefire Haste 2", "Pulsefire Dart"
         ));
-
         rules.put("Keychron", Arrays.asList(
                 "Q1 Pro", "Q2 Pro", "K2 Pro", "V1 Max"
         ));
-
         rules.put("Ducky", Arrays.asList(
                 "One 3", "Shine 7"
         ));
-
         rules.put("Kinesis", Arrays.asList(
                 "Advantage360", "Freestyle Edge RGB"
         ));
-
         rules.put("Epomaker", Arrays.asList(
                 "TH80 Pro", "EK68"
         ));
-
         rules.put("8BitDo", Arrays.asList(
                 "Ultimate Controller", "Pro 2 Controller", "SN30 Pro Controller"
         ));
-
         rules.put("Sony", Arrays.asList(
                 "Xperia 1 V", "Xperia 5 V",
                 "DualSense Wireless Controller", "DualSense Edge Wireless Controller"
         ));
 
         // Fallback for any brand not explicitly listed
+        // Format: "%s %s" → brand name + model/version
         rules.put("DEFAULT", Arrays.asList(
                 "%s %s",
                 "%s %s Edition",
@@ -232,44 +245,144 @@ public class ProductConstants {
         return rules;
     }
 
+    /**
+     * Infers the product category based on keywords in the product name.
+     *
+     * @param productName the name of the product to categorize
+     * @return the inferred category (e.g., "Smartphones", "Laptops"), or {@code null} if no match is found
+     */
     public static String getCategoryForProduct(String productName) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return null;
+        }
+
         String lowerCaseName = productName.toLowerCase();
 
         // Smartphones
-        if (lowerCaseName.contains("iphone") || lowerCaseName.contains("galaxy s") || lowerCaseName.contains("pixel") && !lowerCaseName.contains("tablet") || lowerCaseName.contains("xperia") || lowerCaseName.contains("oneplus") || lowerCaseName.contains("xiaomi") || lowerCaseName.contains("redmi") || lowerCaseName.contains("poco")) {
+        if (lowerCaseName.contains("iphone") ||
+                lowerCaseName.contains("galaxy s") ||
+                (lowerCaseName.contains("pixel") && !lowerCaseName.contains("tablet")) ||
+                lowerCaseName.contains("xperia") ||
+                lowerCaseName.contains("oneplus") ||
+                lowerCaseName.contains("xiaomi") ||
+                lowerCaseName.contains("redmi") ||
+                lowerCaseName.contains("poco")) {
             return "Smartphones";
         }
+
         // Tablets
-        if (lowerCaseName.contains("ipad") || lowerCaseName.contains("galaxy tab") || lowerCaseName.contains("pixel tablet") || lowerCaseName.contains("surface go") || lowerCaseName.contains("surface pro")) {
+        if (lowerCaseName.contains("ipad") ||
+                lowerCaseName.contains("galaxy tab") ||
+                lowerCaseName.contains("pixel tablet") ||
+                lowerCaseName.contains("surface go") ||
+                lowerCaseName.contains("surface pro")) {
             return "Tablets";
         }
+
         // Laptops
-        if (lowerCaseName.contains("macbook") || lowerCaseName.contains("surface laptop") || lowerCaseName.contains("xps") || lowerCaseName.contains("inspiron") || lowerCaseName.contains("latitude") || lowerCaseName.contains("spectre") || lowerCaseName.contains("envy") || lowerCaseName.contains("pavilion") || lowerCaseName.contains("omen") || lowerCaseName.contains("elitebook") || lowerCaseName.contains("thinkpad") || lowerCaseName.contains("legion") && !lowerCaseName.contains("go") || lowerCaseName.contains("ideapad") || lowerCaseName.contains("yoga") || lowerCaseName.contains("zephyrus") || lowerCaseName.contains("flow") && !lowerCaseName.contains("z13") || lowerCaseName.contains("tuf gaming") || lowerCaseName.contains("vivobook") || lowerCaseName.contains("zenbook") || lowerCaseName.contains("predator") || lowerCaseName.contains("nitro") || lowerCaseName.contains("swift") || lowerCaseName.contains("aspire") || lowerCaseName.contains("titan") || lowerCaseName.contains("raider") || lowerCaseName.contains("stealth") || lowerCaseName.contains("cyborg") || lowerCaseName.contains("thin gf") || lowerCaseName.contains("blade") || lowerCaseName.contains("alienware") || lowerCaseName.contains("gram")) {
+        if (lowerCaseName.contains("macbook") ||
+                lowerCaseName.contains("surface laptop") ||
+                lowerCaseName.contains("xps") ||
+                lowerCaseName.contains("inspiron") ||
+                lowerCaseName.contains("latitude") ||
+                lowerCaseName.contains("spectre") ||
+                lowerCaseName.contains("envy") ||
+                lowerCaseName.contains("pavilion") ||
+                lowerCaseName.contains("omen") ||
+                lowerCaseName.contains("elitebook") ||
+                lowerCaseName.contains("thinkpad") ||
+                (lowerCaseName.contains("legion") && !lowerCaseName.contains("go")) ||
+                lowerCaseName.contains("ideapad") ||
+                lowerCaseName.contains("yoga") ||
+                lowerCaseName.contains("zephyrus") ||
+                (lowerCaseName.contains("flow") && !lowerCaseName.contains("z13")) ||
+                lowerCaseName.contains("tuf gaming") ||
+                lowerCaseName.contains("vivobook") ||
+                lowerCaseName.contains("zenbook") ||
+                lowerCaseName.contains("predator") ||
+                lowerCaseName.contains("nitro") ||
+                lowerCaseName.contains("swift") ||
+                lowerCaseName.contains("aspire") ||
+                lowerCaseName.contains("titan") ||
+                lowerCaseName.contains("raider") ||
+                lowerCaseName.contains("stealth") ||
+                lowerCaseName.contains("cyborg") ||
+                lowerCaseName.contains("thin gf") ||
+                lowerCaseName.contains("blade") ||
+                lowerCaseName.contains("alienware") ||
+                lowerCaseName.contains("gram")) {
             return "Laptops";
         }
+
         // Handhelds
-        if (lowerCaseName.contains("rog ally") || lowerCaseName.contains("legion go") || lowerCaseName.contains("steam deck") || lowerCaseName.contains("ayaneo") || lowerCaseName.contains("gpd win") || lowerCaseName.contains("g cloud")) {
+        if (lowerCaseName.contains("rog ally") ||
+                lowerCaseName.contains("legion go") ||
+                lowerCaseName.contains("steam deck") ||
+                lowerCaseName.contains("ayaneo") ||
+                lowerCaseName.contains("gpd win") ||
+                lowerCaseName.contains("g cloud")) {
             return "Handhelds";
         }
+
         // Keyboards
-        if (lowerCaseName.contains("keyboard") || lowerCaseName.contains("keys") || lowerCaseName.contains("blackwidow") || lowerCaseName.contains("huntsman") || lowerCaseName.contains("ornata") || lowerCaseName.contains("k100") || lowerCaseName.contains("k70") || lowerCaseName.contains("k65") || lowerCaseName.contains("apex") || lowerCaseName.contains("alloy") || lowerCaseName.contains("keychron") || lowerCaseName.contains("ducky") || lowerCaseName.contains("kinesis") || lowerCaseName.contains("epomaker") || lowerCaseName.contains("th80")) {
+        if (lowerCaseName.contains("keyboard") ||
+                lowerCaseName.contains("keys") ||
+                lowerCaseName.contains("blackwidow") ||
+                lowerCaseName.contains("huntsman") ||
+                lowerCaseName.contains("ornata") ||
+                lowerCaseName.contains("k100") ||
+                lowerCaseName.contains("k70") ||
+                lowerCaseName.contains("k65") ||
+                lowerCaseName.contains("apex") ||
+                lowerCaseName.contains("alloy") ||
+                lowerCaseName.contains("keychron") ||
+                lowerCaseName.contains("ducky") ||
+                lowerCaseName.contains("kinesis") ||
+                lowerCaseName.contains("epomaker") ||
+                lowerCaseName.contains("th80")) {
             return "Keyboards";
         }
+
         // Mice
-        if (lowerCaseName.contains("mouse") || lowerCaseName.contains("deathadder") || lowerCaseName.contains("viper") || lowerCaseName.contains("basilisk") || lowerCaseName.contains("naga") || lowerCaseName.contains("m75") || lowerCaseName.contains("darkstar") || lowerCaseName.contains("scimitar") || lowerCaseName.contains("aerox") || lowerCaseName.contains("rival") || lowerCaseName.contains("sensei") || lowerCaseName.contains("pulsefire")) {
+        if (lowerCaseName.contains("mouse") ||
+                lowerCaseName.contains("deathadder") ||
+                lowerCaseName.contains("viper") ||
+                lowerCaseName.contains("basilisk") ||
+                lowerCaseName.contains("naga") ||
+                lowerCaseName.contains("m75") ||
+                lowerCaseName.contains("darkstar") ||
+                lowerCaseName.contains("scimitar") ||
+                lowerCaseName.contains("aerox") ||
+                lowerCaseName.contains("rival") ||
+                lowerCaseName.contains("sensei") ||
+                lowerCaseName.contains("pulsefire")) {
             return "Mice";
         }
+
         // Controllers
-        if (lowerCaseName.contains("controller") || lowerCaseName.contains("dualsense") || lowerCaseName.contains("wolverine") || lowerCaseName.contains("kishi") || lowerCaseName.contains("8bitdo")) {
+        if (lowerCaseName.contains("controller") ||
+                lowerCaseName.contains("dualsense") ||
+                lowerCaseName.contains("wolverine") ||
+                lowerCaseName.contains("kishi") ||
+                lowerCaseName.contains("8bitdo")) {
             return "Controllers";
         }
 
         return null; // No specific category found
     }
 
+    /**
+     * Validates whether a given brand is allowed in the specified category.
+     * Useful for ensuring data consistency during product creation.
+     *
+     * @param brand    the brand name (e.g., "Apple")
+     * @param category the category name (e.g., "Smartphones")
+     * @return {@code true} if the brand is valid for the category, {@code true} if brand is not listed (permissive by default)
+     */
     public static boolean isValidBrandCategory(String brand, String category) {
         Map<String, List<String>> validCategories = new HashMap<>();
 
+        // Define brand-category compatibility rules
         validCategories.put("Apple", Arrays.asList("Smartphones", "Tablets", "Laptops", "Keyboards", "Mice"));
         validCategories.put("Samsung", Arrays.asList("Smartphones", "Tablets"));
         validCategories.put("Google", Arrays.asList("Smartphones", "Tablets"));
@@ -291,7 +404,12 @@ public class ProductConstants {
         validCategories.put("Steam", List.of("Handhelds"));
 
         List<String> allowed = validCategories.getOrDefault(brand, null);
-        if (allowed == null) return true;
+
+        // If brand is not in the map, assume it's valid (permissive default)
+        if (allowed == null) {
+            return true;
+        }
+
         return allowed.contains(category);
     }
 }
