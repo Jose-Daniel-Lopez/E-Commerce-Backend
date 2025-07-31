@@ -1309,18 +1309,28 @@ public class DataSeeder implements CommandLineRunner {
 
         List<ProductReview> reviews = new ArrayList<>();
 
-        for (int i = 0; i < NUM_REVIEWS; i++) {
-            Product product = products.get(random.nextInt(products.size()));
-            User user = users.get(random.nextInt(users.size()));
+        // 3-7 reviews per product
+        for (Product product : products) {
+            int numReviews = random.nextInt(5) + 3;
+            Set<Integer> usedUserIndexes = new HashSet<>();
+            for (int i = 0; i < numReviews; i++) {
+                // Ensure unique user per review for a product
+                int userIdx;
+                do {
+                    userIdx = random.nextInt(users.size());
+                } while (usedUserIndexes.contains(userIdx) && usedUserIndexes.size() < users.size());
+                usedUserIndexes.add(userIdx);
+                User user = users.get(userIdx);
 
-            ProductReview review = ProductReview.builder()
-                    .product(product)
-                    .user(user)
-                    .rating(random.nextInt(5) + 1) // 1-5 stars
-                    .comment(faker.lorem().sentence(faker.number().numberBetween(5, 20)))
-                    .createdAt(randomCreatedAt(random))
-                    .build();
-            reviews.add(review);
+                ProductReview review = ProductReview.builder()
+                        .product(product)
+                        .user(user)
+                        .rating(random.nextInt(5) + 1) // 1-5 stars
+                        .comment(faker.lorem().sentence(faker.number().numberBetween(5, 20)))
+                        .createdAt(randomCreatedAt(random))
+                        .build();
+                reviews.add(review);
+            }
         }
 
         productReviewRepo.saveAll(reviews);

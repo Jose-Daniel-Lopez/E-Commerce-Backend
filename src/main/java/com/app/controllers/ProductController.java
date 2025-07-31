@@ -129,7 +129,7 @@ public class ProductController {
     @GetMapping("/new")
     public List<NewlyAddedProductDTO> getNewlyCreatedProducts() {
         return productService.getNewlyCreatedProducts().stream()
-                .map(p -> new NewlyAddedProductDTO(p.getImageUrl(), p.getName(), p.getBasePrice()))
+                .map(p -> new NewlyAddedProductDTO(p.getId(), p.getImageUrl(), p.getName(), p.getBasePrice()))
                 .toList();
     }
 
