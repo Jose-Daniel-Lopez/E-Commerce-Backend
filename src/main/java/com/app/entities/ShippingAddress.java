@@ -1,15 +1,19 @@
 package com.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"user"})
+@ToString(exclude = {"user", "orders"})
 @Builder
 @Entity
 @Table(name = "shipping_addresses")
@@ -46,6 +50,11 @@ public class ShippingAddress {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    // Add relationship to orders - one address can be used by many orders
+    @OneToMany(mappedBy = "shippingAddress", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Order> orders = new ArrayList<>();
 
     public enum AddressType {
         HOME,

@@ -57,6 +57,7 @@ public class OrderSeeder {
     private final PaymentRepository paymentRepo;
     private final UserRepository userRepo;
     private final ProductVariantRepository productVariantRepo;
+    private final ShippingAddressRepository shippingAddressRepo;
     private final Random random = new Random();
 
     /**
@@ -67,6 +68,7 @@ public class OrderSeeder {
      * @param paymentRepo              the repository for payment persistence; must not be {@code null}
      * @param userRepo                 the repository for retrieving users; must not be {@code null}
      * @param productVariantRepo       the repository for retrieving product variants; must not be {@code null}
+     * @param shippingAddressRepo      the repository for retrieving shipping addresses; must not be {@code null}
      * @throws IllegalArgumentException if any dependency is {@code null}
      */
     public OrderSeeder(
@@ -74,12 +76,14 @@ public class OrderSeeder {
             OrderItemRepository orderItemRepo,
             PaymentRepository paymentRepo,
             UserRepository userRepo,
-            ProductVariantRepository productVariantRepo) {
+            ProductVariantRepository productVariantRepo,
+            ShippingAddressRepository shippingAddressRepo) {
         this.orderRepo = orderRepo;
         this.orderItemRepo = orderItemRepo;
         this.paymentRepo = paymentRepo;
         this.userRepo = userRepo;
         this.productVariantRepo = productVariantRepo;
+        this.shippingAddressRepo = shippingAddressRepo;
     }
 
     /**
@@ -139,17 +143,25 @@ public class OrderSeeder {
             User user = users.get(random.nextInt(users.size()));
             LocalDateTime orderDate = randomCreatedAt(random);
 
+            // Get a random shipping address for this user
+            List<ShippingAddress> userAddresses = shippingAddressRepo.findByUserId(user.getId());
+            ShippingAddress shippingAddress = null;
+            if (!userAddresses.isEmpty()) {
+                shippingAddress = userAddresses.get(random.nextInt(userAddresses.size()));
+            }
+
             Order order = Order.builder()
                     .user(user)
                     .status(statuses[random.nextInt(statuses.length)])
                     .orderDate(orderDate)
                     .totalAmount(BigDecimal.ZERO) // Will be updated after order items are added
+                    .shippingAddress(shippingAddress) // Assign shipping address
                     .build();
             orders.add(order);
         }
 
         orderRepo.saveAll(orders);
-        System.out.println(orders.size() + " orders created.");
+        System.out.println(orders.size() + " orders created with shipping addresses assigned.");
     }
 
     /**

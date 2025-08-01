@@ -1,8 +1,13 @@
 package com.app.services;
 
+import com.app.entities.Order;
+import com.app.entities.ShippingAddress;
 import com.app.repositories.OrderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Service class responsible for managing business logic related to {@code Order} entities.
@@ -37,6 +42,15 @@ public class OrderService {
     @Autowired
     public OrderService(OrderRepository orderRepo) {
         this.orderRepo = orderRepo;
+    }
+
+    public Optional<ShippingAddress> getOrderShippingAddress(Long id) {
+        // Fetch the order by ID from the repository
+        Order order = orderRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + id));
+
+        // Return the shipping address (which may be null) wrapped in Optional
+        return Optional.ofNullable(order.getShippingAddress());
     }
 
     // Suggested future methods:

@@ -99,6 +99,14 @@ public class User implements UserDetails {
     @EqualsAndHashCode.Exclude
     private List<Wishlist> wishlists = new ArrayList<>();
 
+    // Shipping Addresses
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private List<ShippingAddress> shippingAddresses = new ArrayList<>();
+
     // ========== ENUMS ==========
     public enum Role {
         CUSTOMER,

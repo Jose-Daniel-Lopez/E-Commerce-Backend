@@ -54,7 +54,7 @@ public class DataSeeder implements CommandLineRunner {
         this.userSeeder = new UserSeeder(userRepo, cartRepo, passwordEncoder, faker);
         this.categorySeeder = new CategorySeeder(categoryRepo);
         this.productSeeder = new ProductSeeder(productRepo, categoryRepo, productVariantRepo, faker);
-        this.orderSeeder = new OrderSeeder(orderRepo, orderItemRepo, paymentRepo, userRepo, productVariantRepo);
+        this.orderSeeder = new OrderSeeder(orderRepo, orderItemRepo, paymentRepo, userRepo, productVariantRepo, shippingAddressRepo);
         this.discountCodeSeeder = new DiscountCodeSeeder(discountCodeRepo, faker);
         this.shippingAddressSeeder = new ShippingAddressSeeder(shippingAddressRepo, userRepo, faker);
         this.cartItemSeeder = new CartItemSeeder(cartItemRepo, cartRepo, productVariantRepo);
@@ -71,11 +71,11 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Starting tech e-commerce data seeding process...");
 
         userSeeder.seed();
+        shippingAddressSeeder.seed();
         categorySeeder.seed();
         productSeeder.seed();
         discountCodeSeeder.seed();
         orderSeeder.seed();
-        shippingAddressSeeder.seed();
         cartItemSeeder.seed();
         productReviewSeeder.seed();
         wishlistSeeder.seed();
