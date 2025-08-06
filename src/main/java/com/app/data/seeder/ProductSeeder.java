@@ -132,7 +132,21 @@ public class ProductSeeder {
             for (int i = 0; i < NUM_PRODUCTS_PER_CATEGORY; i++) {
                 String brand = filteredBrands.get(random.nextInt(filteredBrands.size()));
                 List<String> namingTemplates = BRAND_NAMING_RULES.getOrDefault(brand, BRAND_NAMING_RULES.get("DEFAULT"));
-                String template = namingTemplates.get(random.nextInt(namingTemplates.size()));
+
+                // Filter templates to match the current category
+                List<String> categorySpecificTemplates = namingTemplates.stream()
+                        .filter(template -> {
+                            String inferredCategory = getCategoryForProduct(template);
+                            return categoryName.equals(inferredCategory);
+                        })
+                        .collect(Collectors.toList());
+
+                // If no specific templates match, use the default templates
+                if (categorySpecificTemplates.isEmpty()) {
+                    categorySpecificTemplates = BRAND_NAMING_RULES.get("DEFAULT");
+                }
+
+                String template = categorySpecificTemplates.get(random.nextInt(categorySpecificTemplates.size()));
                 String productName = injectRealisticValues(template, brand, categoryName);
 
                 double minPrice = 50.00;
@@ -275,9 +289,12 @@ public class ProductSeeder {
     private String injectRealisticValues(String template, String brand, String category) {
         String result = template;
 
-        // Replace each %s placeholder with a context-aware value
-        while (result.contains("%s")) {
-            String replacement = switch (category) {
+        // If the template is a generic one, replace placeholders
+        if (template.contains("{brand}") || template.contains("{model}")) {
+            result = result.replace("{brand}", brand);
+
+            // The model is determined by the category
+            String model = switch (category) {
                 case "Smartphones" -> {
                     if ("Apple".equals(brand)) yield String.valueOf(faker.number().numberBetween(13, 16));
                     else if ("Samsung".equals(brand)) yield String.valueOf(faker.number().numberBetween(21, 25));
@@ -327,9 +344,7 @@ public class ProductSeeder {
                 }
                 default -> faker.options().option("Pro", "Max", "Ultra", "Elite", "Plus", "Standard Edition");
             };
-
-            // Replace only the first %s to handle multiple placeholders correctly
-            result = result.replaceFirst("%s", Matcher.quoteReplacement(replacement));
+            result = result.replace("{model}", model);
         }
 
         return result.trim();
@@ -692,3 +707,4 @@ public class ProductSeeder {
         return cleanInfo + "-" + faker.number().numberBetween(1000, 9999);
     }
 }
+

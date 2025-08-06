@@ -234,12 +234,12 @@ public class ProductConstants {
         ));
 
         // Fallback for any brand not explicitly listed
-        // Format: "%s %s" → brand name + model/version
+        // Format: "{brand} {model}" → brand name + model/version
         rules.put("DEFAULT", Arrays.asList(
-                "%s %s",
-                "%s %s Edition",
-                "%s Model %s",
-                "%s Series %s"
+                "{brand} {model}",
+                "{brand} {model} Edition",
+                "{brand} Model {model}",
+                "{brand} Series {model}"
         ));
 
         return rules;
