@@ -5,6 +5,10 @@ import com.app.controllers.ProductController;
 import com.app.entities.*;
 import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
@@ -20,6 +24,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
  */
 @Component
 public class HateoasLinkBuilder {
+
+    private static final Logger logger = LoggerFactory.getLogger(HateoasLinkBuilder.class);
 
     /**
      * Constructs a {@link UserRepresentation} enriched with HATEOAS links.
@@ -37,12 +43,13 @@ public class HateoasLinkBuilder {
         // Direct link labeled "user" for consistency in client navigation
         userRep.add(selfLink.withRel("user"));
 
-        // Conditional links to related resources only if data exists
-        addIfNotEmpty(userRep, user.getAddresses(), "addresses", user.getId(), UserController.class, "addresses");
-        addIfNotNull(userRep, user.getCart(), "cart", user.getId(), UserController.class, "cart");
-        addIfNotEmpty(userRep, user.getOrders(), "orders", user.getId(), UserController.class, "orders");
-        addIfNotEmpty(userRep, user.getProductReviews(), "reviews", user.getId(), UserController.class, "reviews");
-        addIfNotEmpty(userRep, user.getWishlists(), "wishlists", user.getId(), UserController.class, "wishlists");
+        // Safely add conditional links to related resources only if accessible
+        // Use try-catch to handle lazy loading exceptions gracefully
+        safeAddIfNotEmpty(userRep, () -> user.getAddresses(), "addresses", user.getId(), UserController.class, "addresses");
+        safeAddIfNotNull(userRep, () -> user.getCart(), "cart", user.getId(), UserController.class, "cart");
+        safeAddIfNotEmpty(userRep, () -> user.getOrders(), "orders", user.getId(), UserController.class, "orders");
+        safeAddIfNotEmpty(userRep, () -> user.getProductReviews(), "reviews", user.getId(), UserController.class, "reviews");
+        safeAddIfNotEmpty(userRep, () -> user.getWishlists(), "wishlists", user.getId(), UserController.class, "wishlists");
 
         return userRep;
     }
@@ -193,6 +200,63 @@ public class HateoasLinkBuilder {
                     .slash(path)
                     .withRel(rel);
             representation.add(link);
+        }
+    }
+
+    /**
+     * Safely adds a link to the representation if the given collection is not null and not empty,
+     * using a supplier to avoid lazy initialization issues.
+     *
+     * @param representation the HATEOAS representation to add the link to
+     * @param collectionSupplier a supplier that provides the collection
+     * @param rel            the relation name (e.g., "addresses", "orders")
+     * @param id             the ID of the parent resource
+     * @param controller     the controller class used to build the link
+     * @param path           optional path suffix (can be same as rel)
+     * @param <T>            the type of the representation
+     * @param <C>            the type of the collection
+     */
+    private <T extends org.springframework.hateoas.RepresentationModel<T>, C> void safeAddIfNotEmpty(
+            T representation, Supplier<java.util.Collection<C>> collectionSupplier, String rel, Object id,
+            Class<?> controller, String path) {
+        try {
+            java.util.Collection<C> collection = collectionSupplier.get();
+            if (collection != null && !collection.isEmpty()) {
+                Link link = linkTo(controller).slash(id).slash(path).withRel(rel);
+                representation.add(link);
+            }
+        } catch (Exception e) {
+            // Log the exception (if a logging framework is available)
+            // For now, we just print the stack trace
+            logger.error("Error adding link for relation '{}': {}", rel, e.getMessage());
+        }
+    }
+
+    /**
+     * Safely adds a link to the representation if the given object is not null,
+     * using a supplier to avoid lazy initialization issues.
+     *
+     * @param representation the HATEOAS representation to add the link to
+     * @param objSupplier    a supplier that provides the object
+     * @param rel            the relation name
+     * @param id             the ID of the parent resource
+     * @param controller     the controller class used to build the link
+     * @param path           path suffix for the link
+     * @param <T>            the type of the representation
+     */
+    private <T extends org.springframework.hateoas.RepresentationModel<T>> void safeAddIfNotNull(
+            T representation, Supplier<Object> objSupplier, String rel, Object id,
+            Class<?> controller, String path) {
+        try {
+            Object obj = objSupplier.get();
+            if (obj != null) {
+                Link link = linkTo(controller).slash(id).slash(path).withRel(rel);
+                representation.add(link);
+            }
+        } catch (Exception e) {
+            // Log the exception (if a logging framework is available)
+            // For now, we just print the stack trace
+            logger.error("Error adding link for relation '{}': {}", rel, e.getMessage());
         }
     }
 }
