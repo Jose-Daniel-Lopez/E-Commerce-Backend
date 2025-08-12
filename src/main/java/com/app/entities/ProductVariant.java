@@ -36,7 +36,7 @@ public class ProductVariant {
     private Integer stock;
 
     @NotBlank(message = "SKU cannot be blank")
-    private String sku; // Stock Keeping Unit
+    private String sku;
 
     // Many-to-One relationship with Product (bidirectional)
     @ManyToOne(fetch = FetchType.LAZY)
