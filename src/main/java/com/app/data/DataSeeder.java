@@ -2,6 +2,7 @@ package com.app.data;
 
 import com.app.data.seeder.*;
 import com.app.repositories.*;
+import com.app.services.PexelsService;
 import com.github.javafaker.Faker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -47,13 +48,14 @@ public class DataSeeder implements CommandLineRunner {
             ProductVariantRepository productVariantRepo,
             ShippingAddressRepository shippingAddressRepo,
             WishlistRepository wishlistRepo,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            PexelsService pexelsService
     ) {
         Faker faker = new Faker(Locale.ENGLISH);
 
         this.userSeeder = new UserSeeder(userRepo, cartRepo, passwordEncoder, faker);
         this.categorySeeder = new CategorySeeder(categoryRepo);
-        this.productSeeder = new ProductSeeder(productRepo, categoryRepo, productVariantRepo, faker);
+        this.productSeeder = new ProductSeeder(productRepo, categoryRepo, productVariantRepo, pexelsService, faker);
         this.orderSeeder = new OrderSeeder(orderRepo, orderItemRepo, paymentRepo, userRepo, productVariantRepo, shippingAddressRepo);
         this.discountCodeSeeder = new DiscountCodeSeeder(discountCodeRepo, faker);
         this.shippingAddressSeeder = new ShippingAddressSeeder(shippingAddressRepo, userRepo, faker);

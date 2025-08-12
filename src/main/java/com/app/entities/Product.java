@@ -93,7 +93,7 @@ public class Product {
      * URL to the main image of the product.
      * Limited to 255 characters. Should point to CDN or static asset path.
      */
-    @Size(max = 255, message = "Image URL cannot exceed 255 characters")
+    @Size(max = 1000, message = "Image URL cannot exceed 1000 characters")
     @Column(name = "image_url")
     private String imageUrl;
 

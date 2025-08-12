@@ -33,7 +33,7 @@ spring:
     hibernate:
       # ⚠️ WARNING: ddl-auto: create-drop should NEVER be used in production
       # It drops and recreates the schema on every startup
-      ddl-auto: create-drop  # Use 'validate' or 'none' in prod; 'update' for dev
+      ddl-auto: update  # Use 'validate' or 'none' in prod; 'update' for dev
     show-sql: true            # Helpful in dev, but use logger instead in prod
     properties:
       hibernate:
@@ -57,6 +57,11 @@ spring:
           auth: true
           starttls:
             enable: true      # Required for secure email (e.g., Gmail)
+
+# Pexels API Configuration
+pexels:
+  api:
+    key: ${PEXELS_API_KEY}
 
 # Server settings
 server:

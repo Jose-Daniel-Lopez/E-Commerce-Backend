@@ -6,6 +6,7 @@ import com.app.entities.ProductVariant;
 import com.app.repositories.CategoryRepository;
 import com.app.repositories.ProductRepository;
 import com.app.repositories.ProductVariantRepository;
+import com.app.services.PexelsService;
 import com.github.javafaker.Faker;
 
 import java.math.BigDecimal;
@@ -21,14 +22,15 @@ import java.util.stream.Collectors;
 import static com.app.data.seeder.ProductConstants.*;
 
 /**
- * Seeder class responsible for populating the database with realistic product data.
+ * Seeder class responsible for populating the database with realistic product data and images.
  * <p>
  * This class:
  * <ul>
  *   <li>Generates products with category- and brand-specific attributes (e.g., CPU, RAM, DPI)</li>
  *   <li>Creates plausible product names using brand naming patterns</li>
  *   <li>Assigns accurate technical specifications based on category and brand</li>
- *   <li>Generates variants (color, storage, configuration) with realistic stock levels</li>
+ *   <li>Fetches realistic product images from Unsplash API based on category and brand</li>
+ *   <li>Generates variants (color, storage, configuration) with realistic stock levels and images</li>
  *   <li>Ensures data consistency using validation rules from {@link ProductConstants}</li>
  * </ul>
  * <p>
@@ -39,13 +41,14 @@ public class ProductSeeder {
 
     /**
      * Number of products to generate per category.
-     * This ensures balanced product distribution across categories.
+     * Reduced to minimize API calls and stay within Pexels rate limits.
      */
-    private static final int NUM_PRODUCTS_PER_CATEGORY = 15;
+    private static final int NUM_PRODUCTS_PER_CATEGORY = 5;
 
     private final ProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final ProductVariantRepository productVariantRepo;
+    private final PexelsService pexelsService;
     private final Faker faker;
     private final Random random = new Random();
 
@@ -55,15 +58,18 @@ public class ProductSeeder {
      * @param productRepo           repository for persisting products
      * @param categoryRepo          repository to fetch categories
      * @param productVariantRepo    repository for persisting product variants
+     * @param pexelsService       service for fetching realistic product images
      * @param faker                 instance for generating realistic dummy data
      */
     public ProductSeeder(ProductRepository productRepo,
                          CategoryRepository categoryRepo,
                          ProductVariantRepository productVariantRepo,
+                         PexelsService pexelsService,
                          Faker faker) {
         this.productRepo = productRepo;
         this.categoryRepo = categoryRepo;
         this.productVariantRepo = productVariantRepo;
+        this.pexelsService = pexelsService;
         this.faker = faker;
     }
 
@@ -269,6 +275,10 @@ public class ProductSeeder {
                     // No additional attributes for categories like "Controllers", "Handhelds", etc.
                 }
 
+                // Fetch realistic product image from Unsplash API
+                String imageUrl = pexelsService.getProductImage(categoryName, brand, productName);
+                productBuilder.imageUrl(imageUrl);
+
                 products.add(productBuilder.build());
             }
         }
@@ -446,11 +456,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(50) + 5;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size(storage)
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -476,11 +488,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(30) + 8;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size(storage)
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -504,11 +518,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(20) + 3;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size(config)
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + config.replace("/", "-") + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -529,11 +545,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(15) + 2;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size(storage)
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + storage + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -561,11 +579,13 @@ public class ProductSeeder {
                 List<String> selectedColors = getRandomSubset(colors, colorCount);
                 for (String color : selectedColors) {
                     int stock = random.nextInt(25) + 5;
+                    String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                     variants.add(ProductVariant.builder()
                             .size(switchType)
                             .color(color)
                             .stock(stock)
                             .sku(generateSKU(product.getName() + "-" + switchType.replace(" ", "") + "-" + color))
+                            .imageUrl(variantImageUrl)
                             .product(product)
                             .build());
                 }
@@ -575,11 +595,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(30) + 10;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size("Standard")
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -604,11 +626,13 @@ public class ProductSeeder {
                 List<String> selectedColors = getRandomSubset(colors, colorCount);
                 for (String color : selectedColors) {
                     int stock = random.nextInt(20) + 5;
+                    String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                     variants.add(ProductVariant.builder()
                             .size(dpi)
                             .color(color)
                             .stock(stock)
                             .sku(generateSKU(product.getName() + "-" + dpi.replace(" ", "") + "-" + color))
+                            .imageUrl(variantImageUrl)
                             .product(product)
                             .build());
                 }
@@ -618,11 +642,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(25) + 8;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size("Standard")
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -643,11 +669,13 @@ public class ProductSeeder {
             List<String> selectedColors = getRandomSubset(colors, colorCount);
             for (String color : selectedColors) {
                 int stock = random.nextInt(20) + 5;
+                String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), brand, color);
                 variants.add(ProductVariant.builder()
                         .size(edition)
                         .color(color)
                         .stock(stock)
                         .sku(generateSKU(product.getName() + "-" + edition.replace(" ", "") + "-" + color))
+                        .imageUrl(variantImageUrl)
                         .product(product)
                         .build());
             }
@@ -666,11 +694,13 @@ public class ProductSeeder {
         List<String> selectedColors = getRandomSubset(colors, colorCount);
         for (String color : selectedColors) {
             int stock = random.nextInt(30) + 10;
+            String variantImageUrl = pexelsService.getVariantImage(product.getCategory().getName(), product.getBrand(), color);
             variants.add(ProductVariant.builder()
                     .size("Standard")
                     .color(color)
                     .stock(stock)
                     .sku(generateSKU(product.getName() + "-" + color))
+                    .imageUrl(variantImageUrl)
                     .product(product)
                     .build());
         }
