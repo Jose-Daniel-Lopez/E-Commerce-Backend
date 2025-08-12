@@ -23,6 +23,9 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Size(max = 150, message = "Product image Url cannot exceed 150 characters")
+    private String imageUrl;
+
     @Size(max = 50, message = "Size cannot exceed 50 characters")
     private String size;
 
