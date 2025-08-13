@@ -105,6 +105,45 @@ public class ProductService {
         return productRepo.findSummaryByCategoryName(categoryName);
     }
 
+    // === SEARCH METHODS ===
+
+    /**
+     * Performs a comprehensive search across products based on a search term.
+     * Searches through product names, brands, descriptions, and category names.
+     *
+     * @param searchTerm the term to search for (case-insensitive)
+     * @param pageable   pagination and sorting configuration
+     * @return a paged result of products matching the search term
+     */
+    public Page<Product> searchProducts(String searchTerm, Pageable pageable) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return productRepo.findAll(pageable);
+        }
+        return productRepo.searchProducts(searchTerm.trim(), pageable);
+    }
+
+    /**
+     * Searches products specifically by name (for more targeted searches).
+     *
+     * @param name     the product name to search for
+     * @param pageable pagination and sorting configuration
+     * @return a paged result of products with names matching the search term
+     */
+    public Page<Product> searchProductsByName(String name, Pageable pageable) {
+        return productRepo.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+    /**
+     * Searches products by category name (for category-based searches).
+     *
+     * @param categoryName the category name to search for
+     * @param pageable      pagination and sorting configuration
+     * @return a paged result of products in categories matching the search term
+     */
+    public Page<Product> searchProductsByCategory(String categoryName, Pageable pageable) {
+        return productRepo.findByCategoryNameContainingIgnoreCase(categoryName, pageable);
+    }
+
     // === Utility & Filter Support Methods ===
 
     /**

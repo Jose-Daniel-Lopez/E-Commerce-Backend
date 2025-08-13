@@ -206,4 +206,68 @@ public class ProductController {
     public List<String> getBacklightingOptions() {
         return productService.getBacklightingOptions();
     }
+
+    // === SEARCH ENDPOINTS ===
+
+    /**
+     * Main search endpoint for the frontend search bar.
+     * Performs a comprehensive search across product names, brands, descriptions, and categories.
+     * Can handle both specific product searches (e.g., "iPhone 13") and category searches (e.g., "smartphones").
+     *
+     * @param q the search query string from the frontend search bar
+     * @param pageable pagination and sorting parameters (page, size, sort)
+     * @return a paginated list of products matching the search criteria
+     * @response 200 Returns matching products; empty page if no matches found
+     *
+     * @example GET /api/products/search?q=iPhone%2013&page=0&size=10&sort=name,asc
+     * @example GET /api/products/search?q=smartphones&page=0&size=20
+     */
+    @GetMapping("/search")
+    public Page<Product> searchProducts(
+            @RequestParam("q") String searchQuery,
+            Pageable pageable) {
+        return productService.searchProducts(searchQuery, pageable);
+    }
+
+    /**
+     * Advanced search endpoint that allows searching by specific criteria.
+     * Useful for more targeted searches when the frontend needs to search by specific fields.
+     *
+     * @param name optional product name to search for
+     * @param category optional category name to search for
+     * @param brand optional brand name to search for
+     * @param pageable pagination and sorting parameters
+     * @return a paginated list of products matching the specific criteria
+     * @response 200 Returns matching products based on specified criteria
+     */
+    @GetMapping("/search/advanced")
+    public Page<Product> advancedSearch(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "brand", required = false) String brand,
+            Pageable pageable) {
+
+        // If only name is provided, search by name
+        if (name != null && !name.trim().isEmpty() && category == null && brand == null) {
+            return productService.searchProductsByName(name, pageable);
+        }
+
+        // If only category is provided, search by category
+        if (category != null && !category.trim().isEmpty() && name == null && brand == null) {
+            return productService.searchProductsByCategory(category, pageable);
+        }
+
+        // If brand is provided, search by brand
+        if (brand != null && !brand.trim().isEmpty() && name == null && category == null) {
+            return productRepo.findByBrand(brand, pageable);
+        }
+
+        // If multiple criteria or no specific criteria, fall back to general search
+        String searchTerm = "";
+        if (name != null) searchTerm += name + " ";
+        if (category != null) searchTerm += category + " ";
+        if (brand != null) searchTerm += brand + " ";
+
+        return productService.searchProducts(searchTerm.trim(), pageable);
+    }
 }

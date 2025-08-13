@@ -158,4 +158,43 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "FROM Product p WHERE p.category.name = :categoryName")
     List<ProductByCategorySummaryDTO> findSummaryByCategoryName(
             @Param("categoryName") String categoryName);
+
+    // ========================================================================
+    // === SEARCH QUERIES
+    // ========================================================================
+
+    /**
+     * Performs a global search across products by name, brand, description, and category name.
+     * Uses case-insensitive LIKE queries to match partial text.
+     *
+     * @param searchTerm the search term to match against multiple fields
+     * @param pageable pagination information (page number, size, sort)
+     * @return a Page of Product entities matching the search criteria
+     */
+    @Query("SELECT p FROM Product p WHERE " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(p.brand) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(p.category.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    Page<Product> searchProducts(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+    /**
+     * Searches products by name only (for more specific product searches).
+     *
+     * @param name the product name to search for
+     * @param pageable pagination information
+     * @return a Page of Product entities matching the name
+     */
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<Product> findByNameContainingIgnoreCase(@Param("name") String name, Pageable pageable);
+
+    /**
+     * Searches products by category name (case-insensitive).
+     *
+     * @param categoryName the category name to search for
+     * @param pageable pagination information
+     * @return a Page of Product entities in categories matching the name
+     */
+    @Query("SELECT p FROM Product p WHERE LOWER(p.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))")
+    Page<Product> findByCategoryNameContainingIgnoreCase(@Param("categoryName") String categoryName, Pageable pageable);
 }
