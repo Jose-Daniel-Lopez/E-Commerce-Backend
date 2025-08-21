@@ -2,6 +2,7 @@ package com.app.controllers;
 
 import com.app.DTO.NewlyAddedProductDTO;
 import com.app.DTO.ProductByCategorySummaryDTO;
+import com.app.DTO.RelatedProductsDTO;
 import com.app.entities.Product;
 import com.app.hateoas.ProductRepresentation;
 import com.app.hateoas.HateoasLinkBuilder;
@@ -73,6 +74,31 @@ public class ProductController {
         }
         ProductRepresentation representation = hateoasLinkBuilder.buildProductRepresentation(product);
         return ResponseEntity.ok(representation);
+    }
+
+    /**
+     * Retrieves a list of up to 3 related products based on the given product ID.
+     * <p>
+     * Related products are determined by the backend service, potentially using
+     * algorithms that consider product attributes, categories, and other factors.
+     * </p>
+     *
+     * @param id the unique identifier of the product
+     * @param limit optional limit for the number of related products to return (default is 3)
+     * @return {@link ResponseEntity} with a list of {@link RelatedProductsDTO} objects
+     * @response 200 Successfully returns the related products; may be empty if none found
+     * @response 404 Product not found
+     */
+    @GetMapping("/{id}/related")
+    public ResponseEntity<List<RelatedProductsDTO>> getRelatedProducts(
+            @PathVariable Long id,
+            @RequestParam(value = "limit", required = false, defaultValue = "3") int limit) {
+        Product base = productService.getProductById(id);
+        if (base == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<RelatedProductsDTO> related = productService.getRelatedProducts(id, limit);
+        return ResponseEntity.ok(related);
     }
 
     // === CATEGORY-BASED ENDPOINTS ===
@@ -214,7 +240,7 @@ public class ProductController {
      * Performs a comprehensive search across product names, brands, descriptions, and categories.
      * Can handle both specific product searches (e.g., "iPhone 13") and category searches (e.g., "smartphones").
      *
-     * @param q the search query string from the frontend search bar
+     * @param searchQuery the search query string from the frontend search bar
      * @param pageable pagination and sorting parameters (page, size, sort)
      * @return a paginated list of products matching the search criteria
      * @response 200 Returns matching products; empty page if no matches found

@@ -197,4 +197,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p WHERE LOWER(p.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))")
     Page<Product> findByCategoryNameContainingIgnoreCase(@Param("categoryName") String categoryName, Pageable pageable);
+
+    /**
+     * Retrieves up to a specified number of random products from the same category
+     * excluding the given product ID. Uses PostgreSQL RANDOM() for random ordering.
+     *
+     * @param categoryId the category to search within
+     * @param productId the product to exclude from results
+     * @param limit maximum number of related products to return
+     * @return list of random related products (may contain fewer than limit if not enough products)
+     */
+    @Query(value = "SELECT * FROM products p WHERE p.category_id = :categoryId AND p.id <> :productId ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Product> findRandomRelatedProducts(@Param("categoryId") Long categoryId,
+                                            @Param("productId") Long productId,
+                                            @Param("limit") int limit);
 }

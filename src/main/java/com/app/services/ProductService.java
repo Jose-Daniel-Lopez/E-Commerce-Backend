@@ -1,6 +1,7 @@
 package com.app.services;
 
 import com.app.DTO.ProductByCategorySummaryDTO;
+import com.app.DTO.RelatedProductsDTO;
 import com.app.entities.Product;
 import com.app.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,11 +224,25 @@ public class ProductService {
         return BACKLIGHTING_OPTIONS;
     }
 
-    // === Future Method Suggestions ===
-    //
-    // public Product createProduct(Product product) { ... }
-    // public Optional<Product> updateProduct(Long id, Product updatedProduct) { ... }
-    // public void deleteProduct(Long id) { ... }
-    // public Page<Product> searchByName(String keyword, Pageable pageable) { ... }
-    // public List<Product> getTopSelling(int limit) { ... }
+    /**
+     * Fetches a list of related products from the same category, excluding the given product.
+     * <p>
+     * This method retrieves a random set of products from the database that share the same category
+     * as the provided product ID. It's useful for displaying related items on product detail pages.
+     * </p>
+     *
+     * @param productId the ID of the product for which to find related products
+     * @param limit     the maximum number of related products to retrieve (max 10)
+     * @return a list of {@link RelatedProductsDTO} containing related product information
+     */
+    public List<RelatedProductsDTO> getRelatedProducts(Long productId, int limit) {
+        if (productId == null) return List.of();
+        Product base = getProductById(productId);
+        if (base == null || base.getCategory() == null) return List.of();
+        int effectiveLimit = limit <= 0 ? 3 : Math.min(limit, 10); // capped to 10 max to prevent large random scans
+        return productRepo.findRandomRelatedProducts(base.getCategory().getId(), productId, effectiveLimit)
+                .stream()
+                .map(p -> new RelatedProductsDTO(p.getName(), p.getImageUrl(), p.getBasePrice()))
+                .toList();
+    }
 }
