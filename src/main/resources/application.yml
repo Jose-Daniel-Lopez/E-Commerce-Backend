@@ -65,7 +65,7 @@ pexels:
 
 # Server settings
 server:
-  port: 8080                 # Default HTTP port
+  port: 8008                 # Default HTTP port
 
   error:
     include-message: always  # Include error message in JSON responses
