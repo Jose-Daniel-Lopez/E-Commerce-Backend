@@ -242,7 +242,7 @@ public class ProductService {
         int effectiveLimit = limit <= 0 ? 3 : Math.min(limit, 10); // capped to 10 max to prevent large random scans
         return productRepo.findRandomRelatedProducts(base.getCategory().getId(), productId, effectiveLimit)
                 .stream()
-                .map(p -> new RelatedProductsDTO(p.getName(), p.getImageUrl(), p.getBasePrice()))
+                .map(p -> new RelatedProductsDTO(p.getId(), p.getName(), p.getImageUrl(), p.getCategory(), p.getBasePrice()))
                 .toList();
     }
 }
