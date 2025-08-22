@@ -91,8 +91,8 @@ public class ProductService {
      */
     public List<Product> getNewlyCreatedProducts() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneWeekAgo = now.minusDays(7);
-        return productRepo.findNewlyCreatedBetween(oneWeekAgo, now);
+        LocalDateTime threeWeeksAgo = now.minusDays(21);
+        return productRepo.findNewlyCreatedBetween(threeWeeksAgo, now);
     }
 
     /**
