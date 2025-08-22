@@ -142,7 +142,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));  // Frontend origin
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://tab-to-dev.click"));  // Frontend origins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));                       // Allow all headers
         configuration.setAllowCredentials(true);                             // Allow cookies/Authorization
