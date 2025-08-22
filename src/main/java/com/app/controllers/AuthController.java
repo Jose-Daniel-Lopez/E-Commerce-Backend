@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // Allow frontend dev server
+@CrossOrigin(origins = {"http://localhost:5173", "https://tab-to-dev.click/tejon-tech/"}) // Allow frontend dev server
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
