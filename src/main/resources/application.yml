@@ -66,6 +66,9 @@ pexels:
 # Server settings
 server:
   port: 8008                 # Default HTTP port
+  servlet:
+    context-path: /tejon-tech  # Set the context path for the application
+  forward-headers-strategy: framework  # Enable handling of X-Forwarded-* headers
 
   error:
     include-message: always  # Include error message in JSON responses
