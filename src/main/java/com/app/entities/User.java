@@ -61,14 +61,6 @@ public class User implements UserDetails {
 
     // ========== RELATIONSHIPS ==========
 
-    // Addresses
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @Builder.Default
-    private List<Address> addresses = new ArrayList<>();
-
     // Carts
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -151,23 +143,23 @@ public class User implements UserDetails {
         this.password = password;
         this.avatar = avatar;
         this.role = role;
-        this.addresses = new ArrayList<>();
+        this.shippingAddresses = new ArrayList<>();
         this.productReviews = new ArrayList<>();
         this.orders = new ArrayList<>();
     }
 
     // ========== RELATIONSHIP MANAGEMENT METHODS ==========
-    public void addAddress(Address address) {
-        if (addresses == null) {
-            addresses = new ArrayList<>();
+    public void addShippingAddress(ShippingAddress address) {
+        if (shippingAddresses == null) {
+            shippingAddresses = new ArrayList<>();
         }
-        addresses.add(address);
+        shippingAddresses.add(address);
         address.setUser(this);
     }
 
-    public void removeAddress(Address address) {
-        if (addresses != null) {
-            addresses.remove(address);
+    public void removeShippingAddress(ShippingAddress address) {
+        if (shippingAddresses != null) {
+            shippingAddresses.remove(address);
             address.setUser(null);
         }
     }

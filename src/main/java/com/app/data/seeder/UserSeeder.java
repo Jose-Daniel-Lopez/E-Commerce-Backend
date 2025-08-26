@@ -1,7 +1,7 @@
 package com.app.data.seeder;
 
-import com.app.entities.Address;
 import com.app.entities.Cart;
+import com.app.entities.ShippingAddress;
 import com.app.entities.User;
 import com.app.repositories.CartRepository;
 import com.app.repositories.UserRepository;
@@ -89,7 +89,7 @@ public class UserSeeder {
      *   <li>47 additional users (80% CUSTOMER, 20% SELLER) with randomized data</li>
      * </ul>
      * <p>
-     * All users are marked as verified and assigned 1–2 addresses in the United States.
+     * All users are marked as verified and assigned 1–2 shipping addresses in the United States.
      * </p>
      */
     private void seedUsers() {
@@ -107,13 +107,10 @@ public class UserSeeder {
                 User.Role.ADMIN
         );
         admin.setVerified(true);
-        admin.addAddress(new Address(
-                faker.name().title(),
-                faker.address().streetAddress(),
-                faker.address().city(),
-                faker.address().state(),
-                faker.address().zipCode(),
-                "United States"
+        admin.addShippingAddress(createShippingAddress(
+                "Admin Home",
+                ShippingAddress.AddressType.HOME,
+                admin
         ));
         users.add(admin);
 
@@ -126,13 +123,10 @@ public class UserSeeder {
                 User.Role.SELLER
         );
         seller.setVerified(true);
-        seller.addAddress(new Address(
-                faker.name().title(),
-                faker.address().streetAddress(),
-                faker.address().city(),
-                faker.address().state(),
-                faker.address().zipCode(),
-                "United States"
+        seller.addShippingAddress(createShippingAddress(
+                "Seller Office",
+                ShippingAddress.AddressType.OFFICE,
+                seller
         ));
         users.add(seller);
 
@@ -145,13 +139,10 @@ public class UserSeeder {
                 User.Role.CUSTOMER
         );
         testUser.setVerified(true);
-        testUser.addAddress(new Address(
-                faker.name().title(),
-                faker.address().streetAddress(),
-                faker.address().city(),
-                faker.address().state(),
-                faker.address().zipCode(),
-                "United States"
+        testUser.addShippingAddress(createShippingAddress(
+                "Test Home",
+                ShippingAddress.AddressType.HOME,
+                testUser
         ));
         users.add(testUser);
 
@@ -169,13 +160,13 @@ public class UserSeeder {
             // Add 1–2 addresses
             int addressCount = random.nextInt(2) + 1;
             for (int j = 0; j < addressCount; j++) {
-                user.addAddress(new Address(
-                        faker.name().title(),
-                        faker.address().streetAddress(),
-                        faker.address().city(),
-                        faker.address().state(),
-                        faker.address().zipCode(),
-                        "United States"
+                String addressTitle = (j == 0) ? "Home" : "Office";
+                ShippingAddress.AddressType addressType = (j == 0) ? ShippingAddress.AddressType.HOME : ShippingAddress.AddressType.OFFICE;
+
+                user.addShippingAddress(createShippingAddress(
+                        addressTitle,
+                        addressType,
+                        user
                 ));
             }
 
@@ -184,6 +175,27 @@ public class UserSeeder {
 
         userRepo.saveAll(users);
         System.out.println(users.size() + " tech users created.");
+    }
+
+    /**
+     * Creates a shipping address with realistic data using Faker.
+     *
+     * @param title the title for the address (e.g., "Home", "Office")
+     * @param addressType the type of address
+     * @param user the user who owns this address
+     * @return a new ShippingAddress instance
+     */
+    private ShippingAddress createShippingAddress(String title, ShippingAddress.AddressType addressType, User user) {
+        return ShippingAddress.builder()
+                .title(title)
+                .addressType(addressType)
+                .street(faker.address().streetAddress())
+                .city(faker.address().city())
+                .state(faker.address().state())
+                .zipCode(faker.address().zipCode())
+                .country("United States")
+                .user(user)
+                .build();
     }
 
     /**

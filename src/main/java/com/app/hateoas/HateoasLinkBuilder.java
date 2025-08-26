@@ -45,7 +45,7 @@ public class HateoasLinkBuilder {
 
         // Safely add conditional links to related resources only if accessible
         // Use try-catch to handle lazy loading exceptions gracefully
-        safeAddIfNotEmpty(userRep, () -> user.getAddresses(), "addresses", user.getId(), UserController.class, "addresses");
+        safeAddIfNotEmpty(userRep, user::getShippingAddresses, "addresses", user.getId(), UserController.class, "addresses");
         safeAddIfNotNull(userRep, () -> user.getCart(), "cart", user.getId(), UserController.class, "cart");
         safeAddIfNotEmpty(userRep, () -> user.getOrders(), "orders", user.getId(), UserController.class, "orders");
         safeAddIfNotEmpty(userRep, () -> user.getProductReviews(), "reviews", user.getId(), UserController.class, "reviews");
