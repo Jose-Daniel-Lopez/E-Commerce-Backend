@@ -91,6 +91,6 @@ logging:
 jwt:
   # 🔐 Secret key for signing JWT tokens
   # Must be long and secure. Default is for dev only — override in prod!
-  secret: ${JWT_SECRET}  # Set this as an environment variable in production
+  secret: ${JWT_SECRET:myDefaultSecretKeyThatIsAtLeast512BitsLongForHS512AlgorithmAndMustBeSuperSecureAndRandom1234567890!@#$%^&*()}
   # Token expiration in milliseconds (default: 24 hours)
   expiration: ${JWT_EXPIRATION:86400000}
