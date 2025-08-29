@@ -2,6 +2,7 @@ package com.app.hateoas;
 
 import com.app.controllers.UserController;
 import com.app.controllers.ProductController;
+import com.app.controllers.ShippingAddressController;
 import com.app.entities.*;
 import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,7 @@ public class HateoasLinkBuilder {
 
         // Safely add conditional links to related resources only if accessible
         // Use try-catch to handle lazy loading exceptions gracefully
-        safeAddIfNotEmpty(userRep, user::getShippingAddresses, "addresses", user.getId(), UserController.class, "addresses");
+        safeAddIfNotEmpty(userRep, user::getShippingAddresses, "shippingAddresses", user.getId(), UserController.class, "shippingAddresses");
         safeAddIfNotNull(userRep, () -> user.getCart(), "cart", user.getId(), UserController.class, "cart");
         safeAddIfNotEmpty(userRep, () -> user.getOrders(), "orders", user.getId(), UserController.class, "orders");
         safeAddIfNotEmpty(userRep, () -> user.getProductReviews(), "reviews", user.getId(), UserController.class, "reviews");
