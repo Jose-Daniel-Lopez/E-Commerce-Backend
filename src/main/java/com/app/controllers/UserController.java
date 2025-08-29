@@ -1,10 +1,13 @@
 package com.app.controllers;
 
 import com.app.DTO.ChangePasswordDTO;
+import com.app.DTO.ShippingAddressDTO;
 import com.app.DTO.UserPatchDTO;
+import com.app.entities.ShippingAddress;
 import com.app.entities.User;
 import com.app.hateoas.UserRepresentation;
 import com.app.hateoas.HateoasLinkBuilder;
+import com.app.services.ShippingAddressService;
 import com.app.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,17 +39,20 @@ public class UserController {
 
     private final UserService userService;
     private final HateoasLinkBuilder hateoasLinkBuilder;
+    private final ShippingAddressService shippingAddressService;
 
     /**
      * Constructs a new UserController with required dependencies.
      *
      * @param userService        the service handling user business logic
      * @param hateoasLinkBuilder builds HATEOAS-compliant representations with navigational links
+     * @param shippingAddressService the service handling shipping address logic
      */
     @Autowired
-    public UserController(UserService userService, HateoasLinkBuilder hateoasLinkBuilder) {
+    public UserController(UserService userService, HateoasLinkBuilder hateoasLinkBuilder, ShippingAddressService shippingAddressService) {
         this.userService = userService;
         this.hateoasLinkBuilder = hateoasLinkBuilder;
+        this.shippingAddressService = shippingAddressService;
     }
 
     // === READ ENDPOINTS ===
@@ -86,6 +93,34 @@ public class UserController {
         }
         UserRepresentation representation = hateoasLinkBuilder.buildUserRepresentation(user);
         return ResponseEntity.ok(representation);
+    }
+
+    /**
+     * Retrieves all shipping addresses for a specific user.
+     * <p>
+     * This endpoint returns a list of the user's shipping addresses.
+     * </p>
+     *
+     * @param userId the ID of the user whose shipping addresses are to be retrieved
+     * @return 200 OK with a list of {@link ShippingAddressDTO}; 404 if user not found
+     * @response 200 Successfully returns the list of shipping addresses
+     * @response 404 User not found
+     */
+    @GetMapping("/{userId}/shippingAddresses")
+    public ResponseEntity<List<ShippingAddressDTO>> getUserShippingAddresses(@PathVariable Long userId) {
+        // Retrieve the user to ensure they exist
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Fetch and return the shipping addresses
+        List<ShippingAddress> addresses = shippingAddressService.findByUserId(userId);
+        List<ShippingAddressDTO> addressDTOs = addresses.stream()
+                .map(this::convertToDTO)
+                .toList();
+
+        return ResponseEntity.ok(addressDTOs);
     }
 
     // === UPDATE ENDPOINTS ===
@@ -161,5 +196,27 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "An error occurred while changing password"));
         }
+    }
+
+    // === HELPER METHODS ===
+
+    /**
+     * Converts a {@link ShippingAddress} entity to its DTO representation.
+     *
+     * @param entity the entity to convert
+     * @return a populated {@link ShippingAddressDTO}
+     */
+    private ShippingAddressDTO convertToDTO(ShippingAddress entity) {
+        ShippingAddressDTO dto = new ShippingAddressDTO();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setAddressType(entity.getAddressType().name());
+        dto.setStreet(entity.getStreet());
+        dto.setCity(entity.getCity());
+        dto.setState(entity.getState());
+        dto.setZipCode(entity.getZipCode());
+        dto.setCountry(entity.getCountry());
+        dto.setUserId(entity.getUser().getId());
+        return dto;
     }
 }
