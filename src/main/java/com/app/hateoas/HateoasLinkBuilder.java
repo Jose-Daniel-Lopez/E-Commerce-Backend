@@ -44,13 +44,26 @@ public class HateoasLinkBuilder {
         // Direct link labeled "user" for consistency in client navigation
         userRep.add(selfLink.withRel("user"));
 
-        // Safely add conditional links to related resources only if accessible
-        // Use try-catch to handle lazy loading exceptions gracefully
-        safeAddIfNotEmpty(userRep, user::getShippingAddresses, "shippingAddresses", user.getId(), UserController.class, "shippingAddresses");
+        // Always add standard user-related links for consistent API experience
+        // These endpoints should be available regardless of current data state
+
+        // Shipping addresses - always include link even if empty collection
+        Link shippingAddressesLink = linkTo(UserController.class).slash(user.getId()).slash("shippingAddresses").withRel("shippingAddresses");
+        userRep.add(shippingAddressesLink);
+
+        // Cart - always include if user has a cart (which should always be the case)
         safeAddIfNotNull(userRep, () -> user.getCart(), "cart", user.getId(), UserController.class, "cart");
+
+        // Reviews - always include link even if empty collection
+        Link reviewsLink = linkTo(UserController.class).slash(user.getId()).slash("reviews").withRel("reviews");
+        userRep.add(reviewsLink);
+
+        // Wishlists - always include link even if empty collection
+        Link wishlistsLink = linkTo(UserController.class).slash(user.getId()).slash("wishlists").withRel("wishlists");
+        userRep.add(wishlistsLink);
+
+        // Orders - only show if user has orders (for cleaner API)
         safeAddIfNotEmpty(userRep, () -> user.getOrders(), "orders", user.getId(), UserController.class, "orders");
-        safeAddIfNotEmpty(userRep, () -> user.getProductReviews(), "reviews", user.getId(), UserController.class, "reviews");
-        safeAddIfNotEmpty(userRep, () -> user.getWishlists(), "wishlists", user.getId(), UserController.class, "wishlists");
 
         return userRep;
     }
