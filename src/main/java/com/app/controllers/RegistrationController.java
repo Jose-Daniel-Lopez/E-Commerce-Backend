@@ -3,10 +3,12 @@ package com.app.controllers;
 import com.app.DTO.RegisterDTO;
 import com.app.entities.Cart;
 import com.app.entities.User;
+import com.app.entities.Wishlist;
 import com.app.repositories.CartRepository;
 import com.app.repositories.UserRepository;
 import com.app.hateoas.HateoasLinkBuilder;
 import com.app.hateoas.UserRepresentation;
+import com.app.repositories.WishlistRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +42,7 @@ public class RegistrationController {
 
     private final UserRepository userRepo;
     private final CartRepository cartRepo;
+    private final WishlistRepository wishlistRepo;
     private final PasswordEncoder passwordEncoder;
     private final HateoasLinkBuilder linkBuilder;
 
@@ -48,14 +51,16 @@ public class RegistrationController {
      *
      * @param userRepo         repository for user persistence and queries
      * @param cartRepo         repository for cart persistence
+     * @param wishlistRepo     repository for wishlist persistence
      * @param passwordEncoder  component to securely hash passwords
      * @param linkBuilder       HATEOAS link builder for creating hypermedia links
      */
     @Autowired
-    public RegistrationController(UserRepository userRepo, CartRepository cartRepo,
+    public RegistrationController(UserRepository userRepo, CartRepository cartRepo, WishlistRepository wishlistRepo,
                                 PasswordEncoder passwordEncoder, HateoasLinkBuilder linkBuilder) {
         this.userRepo = userRepo;
         this.cartRepo = cartRepo;
+        this.wishlistRepo = wishlistRepo;
         this.passwordEncoder = passwordEncoder;
         this.linkBuilder = linkBuilder;
     }
@@ -113,6 +118,18 @@ public class RegistrationController {
                 .createdAt(LocalDateTime.now())
                 .build();
         Cart savedCart = cartRepo.save(cart);
+
+        // Create a default wishlist for the new user
+        Wishlist defaultWishlist = Wishlist.builder()
+                .title("My Wishlist")
+                .description("Your personal wishlist")
+                .imageUrl("wishlist.png")
+                .productUrl("")
+                .price("Varies")
+                .category("Mixed")
+                .user(savedUser)
+                .build();
+        wishlistRepo.save(defaultWishlist);
 
         // Set bidirectional relationship
         savedUser.setCart(savedCart);
