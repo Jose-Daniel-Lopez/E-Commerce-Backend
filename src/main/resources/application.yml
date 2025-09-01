@@ -33,7 +33,7 @@ spring:
     hibernate:
       # ⚠️ WARNING: ddl-auto: create-drop should NEVER be used in production
       # It drops and recreates the schema on every startup
-      ddl-auto: validate  # Use 'validate' or 'none' in prod; 'update' for dev
+      ddl-auto: update  # Use 'validate' or 'none' in prod; 'update' for dev
     show-sql: true            # Helpful in dev, but use logger instead in prod
     properties:
       hibernate:
