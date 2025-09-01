@@ -8,18 +8,18 @@ spring:
     import: optional:classpath:.env[.properties]
 
   application:
-    name: E-Commerce-App  # Used for service discovery, logging, metrics
+    name: E-Commerce-App # Used for service discovery, logging, metrics
 
   mvc:
     view:
-      prefix: /WEB-INF/views/  # JSPs are located in this directory
-      suffix: .jsp             # Automatically appended to view names
+      prefix: /WEB-INF/views/ # JSPs are located in this directory
+      suffix: .jsp # Automatically appended to view names
 
   datasource:
     url: jdbc:postgresql://localhost:5432/ecommerce_db
-    username: ${DB_USERNAME}                    # Loaded from environment or .env
-    password: ${DB_PASSWORD}                    # Never hardcode in production
-    driver-class-name: org.postgresql.Driver    # Required for PostgreSQL
+    username: ${DB_USERNAME} # Loaded from environment or .env
+    password: ${DB_PASSWORD} # Never hardcode in production
+    driver-class-name: org.postgresql.Driver # Required for PostgreSQL
 
     # HikariCP connection pool settings (optional but recommended)
     hikari:
@@ -33,22 +33,22 @@ spring:
     hibernate:
       # ⚠️ WARNING: ddl-auto: create-drop should NEVER be used in production
       # It drops and recreates the schema on every startup
-      ddl-auto: create-drop  # Use 'validate' or 'none' in prod; 'update' for dev
-    show-sql: true            # Helpful in dev, but use logger instead in prod
+      ddl-auto: update # Use 'validate' or 'none' in prod; 'update' for dev
+    show-sql: true # Helpful in dev, but use logger instead in prod
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect  # Enables PostgreSQL-specific features
-        format_sql: true                                  # Pretty-prints SQL logs
+        dialect: org.hibernate.dialect.PostgreSQLDialect # Enables PostgreSQL-specific features
+        format_sql: true # Pretty-prints SQL logs
         # Enable this in development only
         # hbm2ddl.import_files: import.sql                # Seed data on startup
 
   data:
     rest:
-      base-path: /api        # Exposes Spring Data REST endpoints under /api
+      base-path: /api # Exposes Spring Data REST endpoints under /api
 
   mail:
-    host: ${MAIL_HOST}       # SMTP server (e.g., smtp.gmail.com)
-    port: ${MAIL_PORT}       # Typically 587 (STARTTLS) or 465 (SSL)
+    host: ${MAIL_HOST} # SMTP server (e.g., smtp.gmail.com)
+    port: ${MAIL_PORT} # Typically 587 (STARTTLS) or 465 (SSL)
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -56,7 +56,7 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true      # Required for secure email (e.g., Gmail)
+            enable: true # Required for secure email (e.g., Gmail)
 
 # Pexels API Configuration
 pexels:
@@ -65,27 +65,27 @@ pexels:
 
 # Server settings
 server:
-  port: 8008                 # Default HTTP port
+  port: 8008 # Default HTTP port
   servlet:
-    context-path: /tejon-tech  # Set the context path for the application
-  forward-headers-strategy: framework  # Enable handling of X-Forwarded-* headers
+    context-path: /tejon-tech # Set the context path for the application
+  forward-headers-strategy: framework # Enable handling of X-Forwarded-* headers
 
   error:
-    include-message: always  # Include error message in JSON responses
+    include-message: always # Include error message in JSON responses
     include-stacktrace: never # Never expose stack traces in production
 
 # Logging configuration
 logging:
   level:
     org:
-      springframework: INFO   # General Spring logging
+      springframework: INFO # General Spring logging
       hibernate:
-        SQL: DEBUG            # Log SQL statements
+        SQL: DEBUG # Log SQL statements
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE  # Log parameter values (e.g., "binding parameter [1] = 'john'")
-    com.app: DEBUG            # Custom package logging (adjust as needed)
+              BasicBinder: TRACE # Log parameter values (e.g., "binding parameter [1] = 'john'")
+    com.app: DEBUG # Custom package logging (adjust as needed)
 
 # JWT Configuration (Custom Properties)
 jwt:
